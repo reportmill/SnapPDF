@@ -150,7 +150,7 @@ protected void initUI()
  */
 protected void resetUI()
 {
-    Object item = _treeView.getSelectedItem();
+    Object item = _treeView.getSelItem();
     _xtextArea.setText(getEntryText(item));
 }
 
