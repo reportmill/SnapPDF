@@ -43,8 +43,8 @@ public static void writeImage(PDFWriter aWriter, Image anImage)
     imageDict.put("Type", "/XObject");
     imageDict.put("Subtype", "/Image");
     imageDict.put("Name", "/" + aWriter.getImageName(anImage));
-    imageDict.put("Width", anImage.getWidth());
-    imageDict.put("Height", anImage.getHeight());
+    imageDict.put("Width", anImage.getPixWidth());
+    imageDict.put("Height", anImage.getPixHeight());
     imageDict.put("BitsPerComponent", bps);
     imageDict.put("ColorSpace", colorspace);
     
@@ -70,8 +70,8 @@ public static void writeImage(PDFWriter aWriter, Image anImage)
             Map softMask = new Hashtable();
             softMask.put("Type", "/XObject");
             softMask.put("Subtype", "/Image");
-            softMask.put("Width", anImage.getWidth());
-            softMask.put("Height", anImage.getHeight());
+            softMask.put("Width", anImage.getPixWidth());
+            softMask.put("Height", anImage.getPixHeight());
             softMask.put("BitsPerComponent", 8);
             softMask.put("ColorSpace", "/DeviceGray");
             
