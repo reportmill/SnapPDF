@@ -18,7 +18,7 @@ public class PDFWriterText {
  */
 public static void writeText(PDFWriter aWriter, TextBox aTextBox)
 {
-    // If we couldn't render all the text in bounds, perform clip
+    // If textbox doesn't render all text in bounds, add clip
     //if(layout.endIndex()<layout.length()) { aWriter.print("0 0 "); aWriter.print(aTextBox.getWidth());
     //    aWriter.print(' '); aWriter.print(aTextBox.getHeight()); aWriter.println(" re W n"); }
     
@@ -34,38 +34,23 @@ public static void writeText(PDFWriter aWriter, TextBox aTextBox)
     // Output PDF begin text operator
     pwriter.appendln("BT");
 
-    // Run iteration variables
+    // Iterate over lines and write
     TextBoxRun lastRun = null;
-    List <TextBoxRun> underlineRuns = null;
-
-    // Iterate over runs
-    for(TextBoxLine line : aTextBox.getLines())
-    for(TextBoxRun run : line.getRuns()) {
-        
-        // If below text, bail
-        if(line.getY()>aTextBox.getHeight()) break;
-        
-        // Write standard run
-        writeRun(aWriter, aTextBox, line, run, lastRun);
-        
-        // If underlining, get PDFPageBuffer for underlining ops (to be added after End Text)
-        TextStyle style = run.getStyle();
-        if(style.isUnderlined()) {
-            if(underlineRuns==null) underlineRuns = new ArrayList(); underlineRuns.add(run); }
-        lastRun = run;
+    for(TextBoxLine line : aTextBox.getLines()) {
+        if(line.getY()>aTextBox.getHeight()) break;   // If line below text, bail
+        lastRun = writeLine(aWriter, aTextBox, line, lastRun);
     }
-    
+
     // End Text
     pwriter.appendln("ET");
     
     // Restore unflipped transform
     pwriter.grestore();
     
-    // If there was any underlining, add underlining ops
-    if(underlineRuns!=null) for(TextBoxRun run : underlineRuns) {
+    // If any underlining in TextBox, add underlining ops
+    if(aTextBox.isUnderlined()) for(TextBoxRun run : aTextBox.getUnderlineRuns(null)) {
         TextStyle style = run.getStyle(); TextBoxLine line = run.getLine();
-        pwriter.setStrokeColor(style.getColor());
-        pwriter.setStrokeWidth(line.getUnderlineStroke());
+        pwriter.setStrokeColor(style.getColor()); pwriter.setStrokeWidth(line.getUnderlineStroke());
         pwriter.moveTo(run.getX(), line.getBaseline() - line.getUnderlineY());
         pwriter.lineTo(run.getMaxX(), line.getBaseline() - line.getUnderlineY());
         pwriter.appendln("S");
@@ -73,7 +58,23 @@ public static void writeText(PDFWriter aWriter, TextBox aTextBox)
 }
 
 /**
- * Writes the given text run.
+ * Writes the given TextBoxLine to pdf.
+ */
+public static TextBoxRun writeLine(PDFWriter aWriter, TextBox aTextBox, TextBoxLine aLine, TextBoxRun aLastRun)
+{
+    // Iterate over line runs and writeRun()
+    TextBoxRun lastRun = aLastRun;
+    for(TextBoxRun run : aLine.getRuns()) {
+        writeRun(aWriter, aTextBox, aLine, run, lastRun);
+        lastRun = run;
+    }
+    
+    // Return last run
+    return lastRun;
+}
+
+/**
+ * Writes the given TextBoxRun to pdf.
  */
 public static void writeRun(PDFWriter aWriter, TextBox aText, TextBoxLine aLine, TextBoxRun aRun, TextBoxRun aLastRun)
 {
@@ -112,8 +113,7 @@ public static void writeRun(PDFWriter aWriter, TextBox aText, TextBoxLine aLine,
         if(border==null)
             pPage.appendln("0 Tr");
         else {
-            pPage.setStrokeColor(border.getColor());
-            pPage.setStrokeWidth((float)border.getWidth());
+            pPage.setStrokeColor(border.getColor()); pPage.setStrokeWidth(border.getWidth());
             if(aRun.getColor().getAlpha()>0) {
                 pPage.setFillColor(style.getColor());
                 pPage.appendln("2 Tr");
@@ -185,7 +185,7 @@ public static void writeRun(PDFWriter aWriter, TextBox aText, TextBoxLine aLine,
     }
     
     // If run is hyphenated, add hyphen
-    if(aLine.isHyphenated()) pPage.append('-');
+    if(aLine.isHyphenated() && aRun==aLine.getRunLast()) pPage.append('-');
     
     // End last text show block
     pPage.appendln(") Tj");
