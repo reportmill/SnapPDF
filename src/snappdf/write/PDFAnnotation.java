@@ -46,8 +46,7 @@ public void setHighlightMode(char h)  { _map.put("H", "/" + h); }
  */
 public void setHasBorder(boolean b)
 {
-    if(b)
-        _map.remove("Border");
+    if(b) _map.remove("Border");
     else _map.put("Border", "[0 0 0]");
 }
 
@@ -65,23 +64,22 @@ public Map getAnnotationMap()  { return _map; }
  * An inner class (and annotation subclass) to support hyperlinks.
  */
 public static class Link extends PDFAnnotation {
-    int _page;
+    int _page = -1;
 
     public Link(Rect aRect, String aUrl)
     {
-        super(aRect);
-        setType("/Link");
+        super(aRect); setType("/Link");
+        
+        // Handle special "Page:"
         if(aUrl.startsWith("Page:")) {
-            if(aUrl.startsWith("Page:Next"))
-                _page = 99999;
-            else if(aUrl.startsWith("Page:Back"))
-                _page = -99999;
+            if(aUrl.startsWith("Page:Next")) _page = 99999;
+            else if(aUrl.startsWith("Page:Back")) _page = -99999;
             else _page = StringUtils.intValue(aUrl) - 1;
         }
+        
+        // add url action to annotation dictionary
         else {
-            _page = -1;
-            // add url action to annotation dictionary
-            Hashtable urlAction = new Hashtable();
+            Map urlAction = new Hashtable();
             urlAction.put("Type", "/Action");
             urlAction.put("S", "/URI");
             urlAction.put("URI", '(' + aUrl + ')');
@@ -99,6 +97,20 @@ public static class Link extends PDFAnnotation {
             String ref = xref.getRefString(page);
             _map.put("Dest", "[" + ref + " /XYZ null null null]");
         }
+    }
+}
+
+/**
+ * An inner class (and annotation subclass) to support widgets. See PDF Spec "Widget Annotations", p 640 & sec 8.6.
+ */
+public static class Widget extends PDFAnnotation {
+
+    public Widget(Rect aRect, String aStr)
+    {
+        super(aRect); setType("/Widget");
+        setHasBorder(true);
+        _map.put("F", 4);
+        _map.put("FT", "/Tx");    // Field Type = TextFields
     }
 }
 
