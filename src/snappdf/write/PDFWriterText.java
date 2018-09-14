@@ -49,11 +49,15 @@ public static void writeText(PDFWriter aWriter, TextBox aTextBox)
     
     // If any underlining in TextBox, add underlining ops
     if(aTextBox.isUnderlined()) for(TextBoxRun run : aTextBox.getUnderlineRuns(null)) {
+        
+        // Set stroke and stroke width
         TextStyle style = run.getStyle(); TextBoxLine line = run.getLine();
         pwriter.setStrokeColor(style.getColor()); pwriter.setStrokeWidth(line.getUnderlineStroke());
-        pwriter.moveTo(run.getX(), line.getBaseline() - line.getUnderlineY());
-        pwriter.lineTo(run.getMaxX(), line.getBaseline() - line.getUnderlineY());
-        pwriter.appendln("S");
+        
+        // Get line end points
+        double x0 = run.getX(), y0 = line.getBaseline() - line.getUnderlineY();
+        double x1 = run.getMaxX(); if(run.getEnd()==line.getEnd()) x1 = line.getX() + line.getWidthNoWhiteSpace();
+        pwriter.moveTo(x0, y0); pwriter.lineTo(x1, y0); pwriter.appendln("S");
     }
 }
 
