@@ -77,15 +77,13 @@ protected void writeView(T aView, PDFWriter aWriter)
     // Clip to bounds???
     //pageBuffer.print(aView.getBoundsInside()); pageBuffer.println(" re W n"));
         
-    // Get fill and write pdf if not null
-    Paint fill = aView.getFill();
-    if(fill!=null)
-        SnapPaintPdfr.writeViewFill(aView, fill, aWriter);
+    // If fill set, write pdf
+    if(aView.getFill()!=null)
+        writeViewFill(aView, aWriter);
     
-    // Get stroke and write pdf if not null
-    Border stroke = aView.getBorder();
-    if(stroke!=null)
-        SnapPaintPdfr.writeViewStroke(aView, stroke, aWriter);
+    // If border set, write pdf
+    if(aView.getBorder()!=null)
+        writeViewStroke(aView, aWriter);
 }
 
 /**
@@ -119,6 +117,38 @@ protected void writeViewAfter(T aView, PDFWriter aWriter)
         PDFAnnotation link = new PDFAnnotation.Link(frame, aView.getURL());
         pwriter.addAnnotation(link);
     }*/
+}
+
+/**
+ * Writes a given View stroke.
+ */
+protected void writeViewStroke(View aView, PDFWriter aWriter)
+{
+    Shape shape = aView.getBoundsShape();
+    Border border = aView.getBorder();
+    Color strokeColor = border.getColor(); double strokeWidth = border.getWidth();
+    SnapPaintPdfr.writeShapeStroke(shape, Stroke.getStroke(strokeWidth), strokeColor, aWriter);
+}
+
+/**
+ * Writes a given View fill.
+ */
+protected void writeViewFill(View aView, PDFWriter aWriter)
+{
+    Paint fill = aView.getFill();
+    
+    // Handle GradientPaint fill
+    //if(aFill instanceof GradientPaint) writeGradientFill(aView, (GradientPaint)aFill, aWriter); else
+    
+    // Handle ImagePaint fill
+    if(fill instanceof ImagePaint)
+        SnapPaintPdfr.writeImagePaint(aWriter, (ImagePaint)fill, aView.getBoundsShape(), aView.getBoundsLocal());
+    
+    // Handle color fill
+    else if(fill instanceof Color) {
+        Shape shape = aView.getBoundsShape();
+        SnapPaintPdfr.writeShapeFill(shape, (Color)fill, aWriter);
+    }
 }
 
 /**

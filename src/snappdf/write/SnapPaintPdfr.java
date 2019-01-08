@@ -4,58 +4,45 @@
 package snappdf.write;
 import snap.gfx.*;
 import snappdf.PDFWriter;
-import snap.view.*;
 
 /**
- * Methods to writes PDF for snap Paints.
+ * Utility methods to write PDF for fill/stroke of paths with paints.
  */
 public class SnapPaintPdfr {
 
 /**
- * Writes a given View stroke.
+ * Writes a given shape stroke.
  */
-public static void writeViewStroke(View aView, Border aStroke, PDFWriter aWriter)
+public static void writeShapeStroke(Shape aShape, Stroke aStroke, Color aColor, PDFWriter aWriter)
 {
     // Get PDF page and write stroke path
     PDFPageWriter pdfPage = aWriter.getPageWriter();
-    pdfPage.writePath(aView.getBoundsShape()); //aStroke.getStrokePath(aShape)
+    pdfPage.writePath(aShape);
     
     // Set stroke color and width
-    pdfPage.setStrokeColor(aStroke.getColor());
+    pdfPage.setStrokeColor(aColor);
     pdfPage.setStrokeWidth(aStroke.getWidth());
     
     // Write dash array
-    //if(aStroke.getDashArray()!=null && aStroke.getDashArray().length>1)
-    //    pdfPage.append('[').append(RMStroke.getDashArrayString(aStroke.getDashArray(), " ")).append("] ")
-    //        .append(aStroke.getDashPhase()).appendln(" d");
+    if(aStroke.getDashArray()!=null && aStroke.getDashArray().length>1)
+        pdfPage.append('[').append(Stroke.getDashArrayString(aStroke.getDashArray(), " ")).append("] ")
+            .append(aStroke.getDashOffset()).appendln(" d");
     
     // Write stroke operator
     pdfPage.appendln("S");
 }
 
 /**
- * Writes a given View fill.
- */
-public static void writeViewFill(View aView, Paint aFill, PDFWriter aWriter)
-{
-    //if(aFill instanceof GradientPaint) writeGradientFill(aView, (GradientPaint)aFill, aWriter);
-    //else
-    if(aFill instanceof ImagePaint) writeImagePaint(aWriter, aView, (ImagePaint)aFill);
-    else writeBasicFill(aWriter, aView, (Color)aFill);
-}
-
-/**
  * Writes PDF for a plain RMFill.
  */
-public static void writeBasicFill(PDFWriter aWriter, View aView, Color aFill)
+public static void writeShapeFill(Shape aShape, Color aColor, PDFWriter aWriter)
 {
-    // Get View path and PDF page and write path
-    Shape path = aView.getBoundsShape(); //aShape.getPath()
+    // Get shape path and PDF page and write path
     PDFPageWriter pdfPage = aWriter.getPageWriter();
-    pdfPage.writePath(path);
+    pdfPage.writePath(aShape);
     
     // Set fill color and write fill operator
-    pdfPage.setFillColor(aFill);
+    pdfPage.setFillColor(aColor);
     pdfPage.append('f');
     
     // If path winding rule odd, write odd fill operator
@@ -181,14 +168,6 @@ public static void writeBasicFill(PDFWriter aWriter, View aView, Color aFill)
 /**
  * Writes given ImagePaint to a PDFWriter.
  */
-public static void writeImagePaint(PDFWriter aWriter, View aView, ImagePaint anImageFill)
-{
-    writeImagePaint(aWriter, anImageFill, aView.getBoundsShape(), aView.getBoundsLocal());
-}
-
-/**
- * Writes given ImagePaint to a PDFWriter.
- */
 public static void writeImagePaint(PDFWriter aWriter, ImagePaint anImageFill, Shape aPath, Rect bounds)
 {
     // Get image fill and image data (just return if missing or invalid)
@@ -196,11 +175,8 @@ public static void writeImagePaint(PDFWriter aWriter, ImagePaint anImageFill, Sh
     
     // Get whether image fill is for pdf image (and just return if no page contents - which is apparently legal)
     boolean pdfImage = false; //idata instanceof RMImageDataPDF;
-    //if(pdfImage) {
-    //    RMImageDataPDF pdata = (RMImageDataPDF)idata;
-    //    if(pdata.getPDFFile().getPage(idata.getPageIndex()).getPageContentsStream()==null)
-    //        return;
-    //}
+    //if(pdfImage) { RMImageDataPDF pdata = (RMImageDataPDF)idata;
+    //    if(pdata.getPDFFile().getPage(idata.getPageIndex()).getPageContentsStream()==null) return; }
 
     // Add image data
     aWriter.addImageData(idata);
