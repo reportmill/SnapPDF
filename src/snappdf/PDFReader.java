@@ -18,6 +18,9 @@ public class PDFReader extends Parser {
     // The bytes
     byte                    _bytes[];
     
+    // The XRef start
+    int                     _xrefStart;
+    
 /**
  * Creates a new PDFReader.
  */
@@ -61,13 +64,18 @@ public void readFile()
     _pfile._xtable = new PDFXTable(_pfile, this);
     
     // Read XRefs
-    int xrefstart = readXRefTablePos();
-    Map trailer = _pfile._trailer = readXRefSection(xrefstart);
+    _xrefStart = readXRefTablePos();
+    Map trailer = _pfile._trailer = readXRefSection(_xrefStart);
+    
+    // Get the info dict
+    Map info = _pfile._infoDict = (Map)getXRefObj(trailer.get("Info"));
+    if(info==null)
+        System.err.println("PDFReader.readFile: Couldn't find Info dict");
     
     // Get the catalog
     Map catalog = _pfile._catalogDict = (Map)getXRefObj(trailer.get("Root"));
     if(catalog==null)
-        throw new PDFException("Couldn't find Catalog");
+        throw new PDFException("PDFReader.readFile: Couldn't find Catalog dict");
 
     // Get the file identifier (optional)
     List <String> fileIds = _pfile._fileIds = (List)getXRefObj(trailer.get("ID"));
@@ -214,6 +222,17 @@ protected Map readXRefStream()
     }
         
     return xmap;
+}
+
+/**
+ * Returns a String for XRef table.
+ */
+public String getXRefString()
+{
+    if(_xrefStart<0) return "XRef start not found";
+    String str = new String(_bytes, _xrefStart, _bytes.length - _xrefStart);
+    int end = str.indexOf("trailer"); str = str.substring(0, end);
+    return str;
 }
 
 /**

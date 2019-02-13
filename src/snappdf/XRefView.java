@@ -28,8 +28,8 @@ public class XRefView extends ViewOwner {
     // The ImageView
     ImageView  _imageView;
     
-    // The XRef TreeView
-    TreeView   _treeView;
+    // The XRef BrowserView
+    BrowserView  _browser;
     
     // The XRef TextArea
     TextArea   _xtextArea;
@@ -79,9 +79,10 @@ public void setPDFFile(PDFFile aFile)
     Image img = _pfile!=null? _pfile.getPage(0).getImage() : null;
     _imageView.setImage(img);
     
-    // Set XRefs
-    _treeView.setItems(_pfile);
-    _treeView.expandAll();
+    // Set Browser items
+    Object items[] = new PDFResolver().getChildren(_pfile);
+    _browser.setItems(items);
+    _browser.setSelIndex(0);
     
     // Set Text
     String str = getFileString();
@@ -124,16 +125,29 @@ protected void initUI()
     enableEvents(_imageView, MouseRelease);
     
     // Get/configure TreeView
-    _treeView = getView("TreeView", TreeView.class);
-    _treeView.setResolver(new PDFResolver());
-    _treeView.getCol(0).setAltPaint(new Color("#F8F8F8"));
+    //  <SplitView name="XRefSplit" title="Structure">  <TreeView name="TreeView" PrefWidth="300" />
+    //_treeView = getView("TreeView", TreeView.class);
+    //_treeView.setResolver(new PDFResolver());
+    //_treeView.getCol(0).setAltPaint(new Color("#F8F8F8"));
     
     // Create/add XRef TextArea
-    TextPane xtextPane = new TextPane();
-    View xtextPaneUI = xtextPane.getUI(); xtextPaneUI.setGrowWidth(true);
-    _xtextArea = xtextPane.getTextArea(); _xtextArea.setFont(Font.Arial14);
-    SplitView xsplit = getView("XRefSplit", SplitView.class);
-    xsplit.addItem(xtextPaneUI);
+    //TextPane xtextPane = new TextPane();
+    //View xtextPaneUI = xtextPane.getUI(); xtextPaneUI.setGrowWidth(true);
+    //_xtextArea = xtextPane.getTextArea(); _xtextArea.setFont(Font.Arial14);
+    //SplitView xsplit = getView("XRefSplit", SplitView.class);
+    //xsplit.addItem(xtextPaneUI);
+    
+    // Get/configure BrowserView
+    _browser = getView("BrowserView", BrowserView.class);
+    _browser.setResolver(new PDFResolver());
+    _browser.setPrefColCount(4);
+    
+    // Create/add XRef TextArea
+    TextPane xtextPane2 = new TextPane();
+    View xtextPaneUI2 = xtextPane2.getUI(); xtextPaneUI2.setGrowHeight(true);
+    _xtextArea = xtextPane2.getTextArea(); _xtextArea.setFont(Font.Arial14);
+    SplitView bsplit = getView("BrowserSplit", SplitView.class);
+    bsplit.addItem(xtextPaneUI2);
     
     // Create/add PDFTextArea
     TextPane ptextPane = new TextPane();
@@ -150,7 +164,7 @@ protected void initUI()
  */
 protected void resetUI()
 {
-    Object item = _treeView.getSelItem();
+    Object item = _browser.getSelItem(); if(item instanceof TreeNode) item = ((TreeNode)item).content;
     _xtextArea.setText(getEntryText(item));
 }
 
@@ -203,6 +217,10 @@ public String getEntryText(Object anItem)
         return sb.toString();
     }
     
+    // Handle XRef table
+    if(item instanceof PDFXTable)
+        return _pfile.getReader().getXRefString();
+    
     // Handle anything else
     return item!=null? item.toString() : "(null)";
 }
@@ -210,8 +228,19 @@ public String getEntryText(Object anItem)
 /**
  * Returns the type string for PDF object.
  */
-public String getTypeString(Object anObj)
+public String getTypeString(Object anObj)  { return getTypeString(anObj, false); }
+
+/**
+ * Returns the type string for PDF object.
+ */
+public String getTypeString(Object anObj, boolean doDict)
 {
+    if(anObj instanceof PDFXEntry) { PDFXEntry xref = (PDFXEntry)anObj;
+        Object obj = _pfile.getXRefObj(xref);
+        String str = getTypeString(obj, doDict) + " (" + xref.toString() + ")";
+        return str;
+    }
+
     if(anObj instanceof PDFStream) { PDFStream stream = (PDFStream)anObj;
         Map dict = stream.getDict();
         String type = (String)dict.get("Type");
@@ -219,10 +248,15 @@ public String getTypeString(Object anObj)
         if(type!=null) return type;
         return "Stream";
     }
-    if(anObj instanceof Map)
-        return "Dict";
-    if(anObj instanceof List)
-        return "Array";
+    if(anObj instanceof Map) { Map map = (Map)anObj;
+        String str = "Dict"; if(!doDict) return str;
+        String type = (String)map.get("Type"); if(type!=null) str = type.substring(1) + ' ' + str;
+        String subtype = (String)map.get("Subtype"); if(subtype!=null) str = subtype.substring(1) + ' ' + str;
+        return str;
+    }
+    if(anObj instanceof List) return "Array";
+    if(anObj instanceof String) return "String";
+    if(anObj instanceof Number) return "Num";
     return null;
 }
 
@@ -261,7 +295,7 @@ static boolean isBinary(char c)  { return Character.isISOControl(c) || !Characte
 public static void main(String args[])
 {
     // Get default doc source
-    Object src = args.length>0? args[0] : "/tmp/test.pdf";
+    Object src = args.length>0? args[0] : null; if(src==null) src = WebURL.getURL(XRefView.class, "Sample.pdf");
     WebURL url = WebURL.getURL(src); if(url.getFile()==null) url = null;
     
     // Create Viewer
@@ -284,7 +318,7 @@ private class PDFResolver extends TreeResolver {
         if(anItem instanceof PDFFile) return null;
         if(anItem instanceof PDFXTable) return _pfile;
         if(anItem instanceof PDFXEntry) return _pfile.getXRefTable();
-        if(anItem==_pfile.getTrailer()) return _pfile;
+        if(anItem instanceof TreeNode) return ((TreeNode)anItem).parent;
         return false;
     }
     
@@ -293,8 +327,17 @@ private class PDFResolver extends TreeResolver {
      */
     public boolean isParent(Object anItem)
     {
+        Object item = anItem instanceof TreeNode? ((TreeNode)anItem).content : anItem;
+        if(item instanceof PDFXEntry) { PDFXEntry xref = (PDFXEntry)item;
+            item = _pfile.getXRefObj(xref);
+            if(item instanceof PDFStream)
+                item = ((PDFStream)item).getDict();
+        }
+        
         if(anItem instanceof PDFFile) return true;
         if(anItem instanceof PDFXTable) return true;
+        if(item instanceof Map) return true;
+        if(item instanceof List) return true;
         return false;
     }
     
@@ -303,12 +346,67 @@ private class PDFResolver extends TreeResolver {
      */
     public Object[] getChildren(Object aParent)
     {
+        Object parent = aParent instanceof TreeNode? ((TreeNode)aParent).content : aParent;
+        if(parent instanceof PDFXEntry) { PDFXEntry xref = (PDFXEntry)parent;
+            parent = _pfile.getXRefObj(xref);
+            if(parent instanceof PDFStream)
+                parent = ((PDFStream)parent).getDict();
+        }
+        
+        // Handle PDFFile
         if(aParent instanceof PDFFile) { PDFFile pfile = (PDFFile)aParent;
-            return new Object[] { pfile.getXRefTable(), pfile.getTrailer() };
+        
+            // Get TreeNode for Info, Catalog and Pages dicts and add to nodes list
+            Object infoXRef = pfile.getTrailer().get("Info");
+            Object catXRef = pfile.getTrailer().get("Root");
+            TreeNode info = getNode(pfile, pfile.getInfoDict(), "Info Dict (" + infoXRef + ')');
+            TreeNode catalog = getNode(pfile, pfile.getCatalogDict(), "Catalog Dict (" + catXRef + ')');
+            Object pagesXRef = pfile.getCatalogDict().get("Pages");
+            Map pagesDict = pfile._pagesDict;
+            TreeNode pages = getNode(pfile, pagesDict, "Pages Dict (" + pagesXRef + ')');
+            
+            // Add to new nodes list
+            List nodes = new ArrayList(); Collections.addAll(nodes, info, catalog, pages);
+            
+            // Create pages nodes and add to nodes list
+            List <PDFXEntry> pagesArray = (List)pagesDict.get("Kids");
+            for(int i=0; i<pagesArray.size(); i++) { PDFXEntry page = pagesArray.get(i);
+                TreeNode node = getNode(pfile, page, "Page " + (i+1) + " (" + page + ')');
+                nodes.add(node);
+            }
+
+            // Create Trailer dict node
+            TreeNode trailer = getNode(pfile, pfile.getTrailer(), "Trailer Dict");
+            Collections.addAll(nodes, pfile.getXRefTable(), trailer);
+            
+            // Return nodes array
+            return nodes.toArray();
         }
+        
+        // Handle XRef Table
         if(aParent instanceof PDFXTable) { PDFXTable xtable = (PDFXTable)aParent;
-            return xtable.getXRefs().toArray();
+            return xtable.getXRefs().toArray(); }
+            
+        // Handle Map
+        if(parent instanceof Map) { Map <String,Object> map = (Map)parent;
+            TreeNode nodes[] = new TreeNode[map.size()];
+            List <String> keys = new ArrayList(map.keySet());
+            for(int i=0; i<keys.size(); i++) { String key = keys.get(i); Object obj = map.get(key);
+                String str = obj instanceof PDFXEntry || obj instanceof Map || obj instanceof List? getTypeString(obj) :
+                  '(' + String.valueOf(obj) + ')';
+                nodes[i] = getNode(aParent, obj, '/' + key + ' ' + str); }
+            return nodes;
         }
+        
+        // Handle List
+        if(parent instanceof List) { List list = (List)parent;
+            TreeNode nodes[] = new TreeNode[list.size()];
+            for(int i=0; i<list.size(); i++) { Object obj = list.get(i);
+                nodes[i] = getNode(aParent, obj, getTypeString(obj, true)); }
+            return nodes;
+        }
+        
+        // Return null, since parent type not supported
         return null;
     }
     
@@ -317,17 +415,20 @@ private class PDFResolver extends TreeResolver {
      */
     public String getText(Object anItem)
     {
-        if(anItem instanceof PDFFile) return "File";
-        if(anItem instanceof PDFXTable) return "XTable";
-        if(anItem instanceof PDFXEntry) { PDFXEntry xref = (PDFXEntry)anItem;
-            Object obj = _pfile.getXRefObj(xref);
-            String str = getTypeString(obj);
-            String xstr = xref.toString(); if(str!=null) xstr += " " + str;
-            return xstr;
-        }
-        if(anItem==_pfile.getTrailer()) return "Trailer";
+        if(anItem instanceof PDFXTable) return "XRef Table";
+        if(anItem instanceof PDFXEntry) return getTypeString(anItem, true);
+        if(anItem instanceof TreeNode) return ((TreeNode)anItem).text;
         return anItem.toString();
     }
 }
+
+/**
+ * A class to hold a tree node.
+ */
+private static class TreeNode {
+    String text; Object content, parent;
+    public TreeNode(Object aPar, Object anObj, String aStr)  { parent = aPar; content = anObj; text = aStr; }
+}
+static TreeNode getNode(Object aPar, Object anObj, String aStr)  { return new TreeNode(aPar, anObj, aStr); }
 
 }

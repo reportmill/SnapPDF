@@ -107,7 +107,7 @@ protected Object getXRefObjImpl(PDFXEntry anEntry) throws Exception
         case PDFXEntry.EntryDeleted: return null;
         
         // Handle unknown object
-        default: throw new PDFException("Reference to unknown object");
+        default: System.err.println("PDFXTable.getXRefObjImpl: Reference to unknown object"); return null;
     }
 }
 

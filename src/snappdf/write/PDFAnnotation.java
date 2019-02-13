@@ -101,7 +101,7 @@ public static class Link extends PDFAnnotation {
 }
 
 /**
- * An inner class (and annotation subclass) to support widgets. See PDF Spec "Widget Annotations", p 640 & sec 8.6.
+ * An annotation subclass to support widgets. See PDF Spec "Widget Annotations", p 408 & sec 12.7.
  */
 public static class Widget extends PDFAnnotation {
 
@@ -109,8 +109,21 @@ public static class Widget extends PDFAnnotation {
     {
         super(aRect); setType("/Widget");
         setHasBorder(true);
-        _map.put("F", 4);
+        _map.put("F", 4); // Annotation flags
         _map.put("FT", "/Tx");    // Field Type = TextFields
+    }
+}
+
+/**
+ * An annotation subclass to support FreeText. See PDF Spec "FreeText Annotations", p 395 & sec 12.5.6.6.
+ */
+public static class FreeText extends PDFAnnotation {
+
+    public FreeText(Rect aRect, String aStr)
+    {
+        super(aRect); setType("/Text");
+        if(aStr!=null && aStr.length()>0)
+            _map.put("Contents", '(' + aStr + ')');
     }
 }
 
