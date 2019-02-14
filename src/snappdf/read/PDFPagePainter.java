@@ -325,7 +325,7 @@ void concatenate(Transform xfm)  { _pntr.transform(xfm); }
 void cs()
 {
     String space = getToken(_index-1).getName();
-    _gstate.colorSpace = PDFColorSpace.getColorspace(space, _pfile, _page);
+    _gstate.colorSpace = PDFColorSpace.getColorspace(space, _page);
 }
 
 /**
@@ -334,7 +334,7 @@ void cs()
 void CS()
 {
     String space = getToken(_index-1).getName();
-    _gstate.scolorSpace = PDFColorSpace.getColorspace(space, _pfile, _page);
+    _gstate.scolorSpace = PDFColorSpace.getColorspace(space, _page);
 }
 
 /**
@@ -407,7 +407,7 @@ void f_x()
  */
 void g()
 {
-    ColorSpace cspace = PDFColorSpace.getColorspace("DeviceGray", _pfile, _page);
+    ColorSpace cspace = PDFColorSpace.getColorspace("DeviceGray", _page);
     _gstate.color = getColor(cspace, _index); _gstate.colorSpace = cspace;
 }
 
@@ -425,7 +425,7 @@ void gs()
  */
 void G()
 {
-    ColorSpace cspace = PDFColorSpace.getColorspace("DeviceGray", _pfile, _page);
+    ColorSpace cspace = PDFColorSpace.getColorspace("DeviceGray", _page);
     _gstate.scolor = getColor(cspace, _index); _gstate.scolorSpace = cspace;
 }
 
@@ -463,7 +463,7 @@ void J()  { _gstate.lineCap = getInt(_index-1); _gstate.stroke = null; }
  */
 void k()
 {
-    ColorSpace cspace = PDFColorSpace.getColorspace("DeviceCMYK", _pfile, _page);
+    ColorSpace cspace = PDFColorSpace.getColorspace("DeviceCMYK", _page);
     Color acolor = getColor(cspace, _index);
     _gstate.colorSpace = cspace; _gstate.color = acolor;
 }
@@ -473,7 +473,7 @@ void k()
  */
 void K()
 {
-    ColorSpace cspace = PDFColorSpace.getColorspace("DeviceCMYK", _pfile, _page);
+    ColorSpace cspace = PDFColorSpace.getColorspace("DeviceCMYK", _page);
     Color acolor = getColor(cspace, _index);
     _gstate.scolorSpace = cspace; _gstate.scolor = acolor;
 }
@@ -550,7 +550,7 @@ void ri()
  */
 void rg()
 {
-    ColorSpace cspace = PDFColorSpace.getColorspace("DeviceRGB", _pfile, _page);
+    ColorSpace cspace = PDFColorSpace.getColorspace("DeviceRGB", _page);
     _gstate.color = getColor(cspace, _index);
     _gstate.colorSpace = cspace;
 }
@@ -560,7 +560,7 @@ void rg()
  */
 void RG()
 {
-    ColorSpace cspace = PDFColorSpace.getColorspace("DeviceRGB", _pfile, _page);
+    ColorSpace cspace = PDFColorSpace.getColorspace("DeviceRGB", _page);
     _gstate.scolor = getColor(cspace, _index);
     _gstate.scolorSpace = cspace;
 }
@@ -599,7 +599,7 @@ void scn()
         
         System.err.println("PDFPagePainter: sc for PatternSpace not implemented");
         /*String pname = getToken(_index-1).getName();
-        PDFPattern pat = getPattern(pname);
+        PDFPattern pat = PDFPattern.getPattern(pname, _page);
         gs.color = pat.getPaint();
         
         // this is really stupid.  change this around
@@ -628,7 +628,7 @@ void sh()
     System.err.println("PDFPagePainter: Set shader (sh) not implemented");
     /*String shadename = getToken(_index-1).getName();
     java.awt.Paint oldPaint = gs.color;
-    PDFPatterns.Shading shade = getShading(shadename);
+    PDFPatterns.Shading shade = PDFPattern.getShading(shadename, _page);
     gs.color = shade.getPaint();  //save away old color
     // Get area to fill. If shading specifies bounds, use that, if not, use clip. else fill whole page.
     GeneralPath shadearea;
@@ -896,7 +896,7 @@ private int parseInlineImage(int tIndex, byte[] pageBytes)
         // Create stream, tell imageFactory to create image and draw it
         else if(token.type==PageToken.PDFInlineImageData) {
             Object space = imageDict.get("ColorSpace");
-            ColorSpace imgCSpace = space!=null? PDFColorSpace.getColorspace(space, _pfile, _page) : null;
+            ColorSpace imgCSpace = space!=null? PDFColorSpace.getColorspace(space, _page) : null;
             PDFStream imgStream = new PDFStream(pageBytes, token.getStart(), token.getLength(), imageDict);
             drawImage(PDFImage.getImage(imgStream, imgCSpace, _pfile));
             return i; // return token index
@@ -1115,7 +1115,7 @@ private Object getXObject(String pdfName)
         if (type.equals("/Image")) {
             // First check for a colorspace entry for the image, and create an awt colorspace.
             Object space = _page.getXRefObj(xobjDict.get("ColorSpace"));
-            ColorSpace imageCSpace = space==null ? null : PDFColorSpace.getColorspace(space, _pfile, _page);
+            ColorSpace imageCSpace = space==null ? null : PDFColorSpace.getColorspace(space, _page);
             cached = PDFImage.getImage(xobjStream, imageCSpace, _pfile);
         }
         
@@ -1132,40 +1132,6 @@ private Object getXObject(String pdfName)
     // Complain and return null
     System.err.println("Unable to get xobject named \""+pdfName+"\"");
     return null;
-}
-
-/**
- * Creates a new pattern object for the resource name
- */
-private PDFPattern getPattern(String pdfName)
-{
-    Object pat = _page.findResource("Pattern", pdfName);
-    PDFPattern patobj = PDFPattern.getInstance(pat, _pfile);
-    
-    // Resolve the colorspace.
-    if (patobj instanceof PDFPattern.Shading) {
-        Map shmap = (Map)_page.getXRefObj(((Map)pat).get("Shading"));
-        Object csobj = _page.getXRefObj(shmap.get("ColorSpace"));
-        if(csobj!=null)
-            ((PDFPattern.Shading)patobj).setColorSpace(PDFColorSpace.getColorspace(csobj, _pfile, _page));
-    }
-    
-    return patobj;
-}
-
-/**
- * Creates a new shadingPattern for the resource name.  Used by the shading operator.
- */
-private PDFPattern.Shading getShading(String pdfName)
-{
-    Map pat = (Map)_page.findResource("Shading", pdfName);
-    PDFPattern.Shading patobj = PDFPattern.Shading.getInstance(pat, _pfile);
-    
-    // Resolve the colorspace.
-    Object csobj = _page.getXRefObj(pat.get("ColorSpace"));
-    if(csobj!=null)
-        patobj.setColorSpace(PDFColorSpace.getColorspace(csobj, _pfile, _page));
-    return patobj;
 }
 
 /**

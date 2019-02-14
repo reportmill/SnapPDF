@@ -14,6 +14,7 @@ import snap.gfx.Rect;
 import snap.gfx.Transform;
 import snappdf.PDFException;
 import snappdf.PDFFile;
+import snappdf.PDFPage;
 import snappdf.PDFStream;
 
 /**
@@ -44,9 +45,43 @@ public Transform getTransform()  { return _xform; }
 public abstract Paint getPaint();
 
 /**
+ * Creates a new pattern object for the resource name
+ */
+public static PDFPattern getPattern(String aName, PDFPage aPage)
+{
+    Object pat = aPage.findResource("Pattern", aName);
+    PDFPattern patobj = PDFPattern.getInstance(pat, aPage.getFile());
+    
+    // Resolve the colorspace.
+    if(patobj instanceof PDFPattern.Shading) {
+        Map shmap = (Map)aPage.getXRefObj(((Map)pat).get("Shading"));
+        Object csobj = aPage.getXRefObj(shmap.get("ColorSpace"));
+        if(csobj!=null)
+            ((PDFPattern.Shading)patobj).setColorSpace(PDFColorSpace.getColorspace(csobj, aPage));
+    }
+    
+    return patobj;
+}
+
+/**
+ * Creates a new shadingPattern for the resource name.  Used by the shading operator.
+ */
+public static PDFPattern.Shading getShading(String aName, PDFPage aPage)
+{
+    Map pat = (Map)aPage.findResource("Shading", aName);
+    PDFPattern.Shading patobj = PDFPattern.Shading.getInstance(pat, aPage.getFile());
+    
+    // Resolve the colorspace.
+    Object csobj = aPage.getXRefObj(pat.get("ColorSpace"));
+    if(csobj!=null)
+        patobj.setColorSpace(PDFColorSpace.getColorspace(csobj, aPage));
+    return patobj;
+}
+
+/**
  * Returns a PDFPattern for given dictionary or Stream.dictionary.
  */
-public static PDFPattern getInstance(Object pat, PDFFile srcFile)
+private static PDFPattern getInstance(Object pat, PDFFile srcFile)
 {
     Map pdict = pat instanceof PDFStream ? ((PDFStream)pat).getDict() : (Map)pat;
     Object v = pdict.get("PatternType");

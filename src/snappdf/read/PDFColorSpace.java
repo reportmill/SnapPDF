@@ -45,7 +45,7 @@ public class PDFColorSpace {
  *
  * Note that colorspaces in pdf are usually specified as strings (for built-ins) or arrays (eg. [/CalRGB << ... >>])
  */
-public static ColorSpace getColorspace(Object csobj, PDFFile _pfile, PDFPage page)
+public static ColorSpace getColorspace(Object csobj, PDFPage page)
 {
     int type=-1;
     Object params = null;
@@ -63,7 +63,7 @@ public static ColorSpace getColorspace(Object csobj, PDFFile _pfile, PDFPage pag
             String defName = "Default"+pdfName.substring(6);
             Object resource = page.findResource("ColorSpace", defName);
             if (resource != null)
-                return getColorspace(resource, _pfile, page);
+                return getColorspace(resource, page);
         }
         
         // Device... & Pattern are all fully specified by the name
@@ -75,7 +75,7 @@ public static ColorSpace getColorspace(Object csobj, PDFFile _pfile, PDFPage pag
             // Look up the name in the resource dictionary and try again
             Object resource = page.findResource("ColorSpace", pdfName);
             if(resource!=null)
-                return getColorspace(resource, _pfile, page);
+                return getColorspace(resource, page);
         }
     }
     
@@ -90,7 +90,7 @@ public static ColorSpace getColorspace(Object csobj, PDFFile _pfile, PDFPage pag
             return (ColorSpace)cachedObj;
         
         String pdfName = ((String)cslist.get(0)).substring(1);
-        params = cslist.size()>1 ? _pfile.getXRefObj(cslist.get(1)) : null;
+        params = cslist.size()>1 ? page.getXRefObj(cslist.get(1)) : null;
         
         if (pdfName.equals("CalGray")) type = PDFColorSpace.CalibratedGrayColorspace;
         else if (pdfName.equals("CalRGB")) type = PDFColorSpace.CalibratedRGBColorspace;
@@ -98,24 +98,24 @@ public static ColorSpace getColorspace(Object csobj, PDFFile _pfile, PDFPage pag
         else if (pdfName.equals("ICCBased")) type = PDFColorSpace.ICCBasedColorspace;
         else if (pdfName.equals("Pattern")) {
             type = PDFColorSpace.PatternColorspace;
-            if(params!=null) params = getColorspace(params, _pfile, page);
+            if(params!=null) params = getColorspace(params, page);
         }
         else if (pdfName.equals("Separation")) {
             type = PDFColorSpace.SeparationColorspace;
             Map paramDict = new Hashtable(2);
             paramDict.put("Colorant", cslist.get(1));
-            paramDict.put("Base",getColorspace(_pfile.getXRefObj(cslist.get(2)), _pfile, page));
-            paramDict.put("TintTransform", PDFFunction.getInstance(_pfile.getXRefObj(cslist.get(3)), _pfile));
+            paramDict.put("Base",getColorspace(page.getXRefObj(cslist.get(2)), page));
+            paramDict.put("TintTransform", PDFFunction.getInstance(page.getXRefObj(cslist.get(3)), page.getFile()));
             params = paramDict;
          }
         else if (pdfName.equals("DeviceN")) {
             type = PDFColorSpace.DeviceNColorspace;
             Map paramDict = new Hashtable(2);
-            paramDict.put("Colorants", _pfile.getXRefObj(cslist.get(1)));
-            paramDict.put("Base", getColorspace(_pfile.getXRefObj(cslist.get(2)), _pfile, page));
-            paramDict.put("TintTransform", PDFFunction.getInstance(_pfile.getXRefObj(cslist.get(3)), _pfile));
+            paramDict.put("Colorants", page.getXRefObj(cslist.get(1)));
+            paramDict.put("Base", getColorspace(page.getXRefObj(cslist.get(2)), page));
+            paramDict.put("TintTransform", PDFFunction.getInstance(page.getXRefObj(cslist.get(3)), page.getFile()));
             if (cslist.size()>4)
-                paramDict.put("Attributes", _pfile.getXRefObj(cslist.get(4)));
+                paramDict.put("Attributes", page.getXRefObj(cslist.get(4)));
             params = paramDict;
         }
         
@@ -132,7 +132,7 @@ public static ColorSpace getColorspace(Object csobj, PDFFile _pfile, PDFPage pag
             if(params instanceof String && (((String)params).charAt(0)=='/'))
                 params = ((String)params).substring(1);
             
-            ColorSpace base = getColorspace(params, _pfile, page);
+            ColorSpace base = getColorspace(params, page);
             Object hival = cslist.get(2);
             byte lookup_table[];
             
@@ -140,7 +140,7 @@ public static ColorSpace getColorspace(Object csobj, PDFFile _pfile, PDFPage pag
                 throw new PDFException("Illegal Colorspace definition "+cslist);
 
             // The lookuptable is next
-            Object val = _pfile.getXRefObj(cslist.get(3));
+            Object val = page.getXRefObj(cslist.get(3));
             if (val instanceof PDFStream) 
                 lookup_table = ((PDFStream)val).decodeStream();
                 
