@@ -56,11 +56,8 @@ public class PDFPagePainter {
     // The painter
     Painter              _pntr;
     
-    // The graphics
-    Graphics2D           _gfx;
-    
 /**
- * Creates a new PDFPagePainter.
+ * Creates a PDFPagePainter.
  */
 public PDFPagePainter(PDFPage aPage)
 {
@@ -82,21 +79,12 @@ public PDFPagePainter(PDFPage aPage)
 public Painter getPainter()  { return _pntr; }
 
 /**
- * Return graphics.
- */
-public Graphics2D getGraphics()  { return _gfx; }
-
-/**
  * Paints the page inside the given rect.
  */
 public void paint(Painter aPntr, Object aSource, Rect theDestBnds, Transform aTrans) 
 {
-    // Save painter state
-    aPntr.save();
-    
-    // Set Painter, Graphics, Text.RenderContext
-    _pntr = aPntr; _gfx = _pntr.getNative(Graphics2D.class);
-    _text._renderContext = _gfx.getFontRenderContext();
+    // Set painter and save painter state
+    _pntr = aPntr; aPntr.save();
     
     // Get Source bounds (the natural bounds of the Page, Form or Pattern)
     Rect srcBnds = null;
@@ -1170,7 +1158,8 @@ public void drawImage(java.awt.Image anImg)
     if(pixWide<0 || pixHigh<0) throw new PDFException("PDFPagePainter: Error loading image"); // Shouldn't happen
 
     AffineTransform ixform = new AffineTransform(1.0/pixWide, 0.0, 0.0, -1.0/pixHigh, 0, 1.0);
-    _gfx.drawImage(anImg, ixform, null); // If fails with ImagingOpException, see RM14 sun_bug_4723021_workaround
+    Graphics2D g2d = (Graphics2D)_pntr.getNative();
+    g2d.drawImage(anImg, ixform, null); // If fails with ImagingOpException, see RM14 sun_bug_4723021_workaround
 }
 
 /**
@@ -1181,7 +1170,6 @@ PDFGState gsave()
     PDFGState newstate = (PDFGState)_gstate.clone();
     _gstates.push(newstate);
     _pntr.save();
-    _gfx = _pntr.getNative(Graphics2D.class);
     return _gstate = newstate;
 }
 
@@ -1193,7 +1181,6 @@ PDFGState grestore()
     // Pop last GState (but get it's clip)
     _gstate = _gstates.peek();
     _pntr.restore();
-    _gfx = _pntr.getNative(Graphics2D.class);
     return _gstate;
 }
 

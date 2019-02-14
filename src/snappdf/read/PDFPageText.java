@@ -3,6 +3,7 @@
  */
 package snappdf.read;
 import java.awt.Font;
+import java.awt.Graphics2D;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
@@ -31,9 +32,6 @@ public class PDFPageText {
     
     // Buffer used to convert bytes in font's encoding to unichars or some other form that font's cmap will understand
     char               _charBuf[] = new char[32];
-    
-    // A FontRenderContext to help create glyphs
-    FontRenderContext  _renderContext;
     
     // Text state parameters can persist across many text objects, so they're stored in the gstate
     // TODO:  Only horizontal writing mode supported at the moment. Eventually we'll need to do vertical, too.
@@ -111,7 +109,8 @@ public void showText(int offset, int length)
     
     // TODO: eventually need check the font render mode in the gstate
     pntr.setPaint(gs.color);
-    _ppntr._gfx.drawGlyphVector(glyphs,0,0);
+    Graphics2D g2d = getGraphics();
+    g2d.drawGlyphVector(glyphs,0,0);
     
     // draw, restore ctm and update the text matrix
     _ppntr.grestore();
@@ -147,7 +146,8 @@ GlyphVector getSingleByteCIDGlyphVector(byte pageBytes[], int offset, int length
     
     // Tell font (assumed to have a point size of 1) to create glyphs
     char chars[] = uchars.length==numChars? uchars : Arrays.copyOf(uchars, numChars);
-    GlyphVector glyphs = aFont.createGlyphVector(_renderContext, chars);
+    FontRenderContext fontRC = getFontRC();
+    GlyphVector glyphs = aFont.createGlyphVector(fontRC, chars);
      
     // position adjustments.  For performance reasons, we can probably skip this step if word and character spacing
     // are both 0, although we still need to calculate advance for the whole thing (maybe with help from glyphVector)
@@ -191,7 +191,8 @@ GlyphVector getMultibyteCIDGlyphVector(char cids[], int numCIDs, PDFGState gs, F
     // Create a glyphVector using the gids. Note that although the javadoc for Font claims that the int array is for
     // glyphCodes, the description is identical to char method, which uses font's unicode cmap. I assume desrciption
     // is a cut&paste bug and that the int array called glyphCodes is really used as an array of glyph codes.
-    GlyphVector glyphs = aFont.createGlyphVector(_renderContext, glyphIDs);
+    FontRenderContext fontRC = getFontRC();
+    GlyphVector glyphs = aFont.createGlyphVector(fontRC, glyphIDs);
     
     // position adjustments.  See single-byte routine for comments
     textoffset.x = textoffset.y = 0;
@@ -210,5 +211,11 @@ GlyphVector getMultibyteCIDGlyphVector(char cids[], int numCIDs, PDFGState gs, F
     }
     return glyphs;
 }
+
+/** Returns the Graphics2D. */
+private Graphics2D getGraphics()  { return (Graphics2D)_ppntr._pntr.getNative(); }
+
+/** Returns the FontRenderContext. */
+private FontRenderContext getFontRC()  { Graphics2D g2d = getGraphics(); return g2d.getFontRenderContext(); }
 
 }

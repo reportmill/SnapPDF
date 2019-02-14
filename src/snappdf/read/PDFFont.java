@@ -1,7 +1,7 @@
 package snappdf.read;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.io.*;
 import java.util.*;
 import snappdf.*;
@@ -27,12 +27,12 @@ public class PDFFont {
  */
 public static Font getFont(Map fontDict, PDFFile srcfile)
 {
-    if (fontDict==null) 
-        return getDefaultFont();
+    // If no font dict, return default font
+    if(fontDict==null) return getDefaultFont();
     
     // First check to see if we've created & cached the font already
-    Font awtFont = (Font)fontDict.get("_rbcached_awtfont_");
-    if (awtFont != null)
+    Font awtFont = (Font)fontDict.get("_snapcache_awtfont_");
+    if(awtFont != null)
         return awtFont;
 
     // The Subtype (ie. The font format.  awt likes TrueType fonts)
@@ -89,7 +89,7 @@ public static Font getFont(Map fontDict, PDFFile srcfile)
     }
 
     // cache it
-    fontDict.put("_rbcached_awtfont_",awtFont);
+    fontDict.put("_snapcache_awtfont_",awtFont);
     return awtFont;
 }
 
@@ -222,11 +222,11 @@ public static Object getGlyphWidths(Map fontDict, PDFFile srcfile, PDFPagePainte
         // No width array. Should only happen for standard14 fonts. Use awt and cross your fingers.
         else {
             Font aFont = getFont(fontDict, srcfile);
-            Graphics g = aPntr.getGraphics();
+            Graphics2D g2d = (Graphics2D)aPntr.getPainter().getNative();
              
             // Using a 1000 pt font to get the metrics
-            if(g!=null) {
-                FontMetrics metrics = g.getFontMetrics(aFont.deriveFont(1000f));
+            if(g2d!=null) {
+                FontMetrics metrics = g2d.getFontMetrics(aFont.deriveFont(1000f));
                 int iwidths[] = metrics.getWidths();
                 for(int i=0; i<256; i++) widths[i] = iwidths[i]/1000f;
             }
