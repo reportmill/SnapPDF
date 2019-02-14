@@ -40,6 +40,16 @@ public PDFStream(byte bytes[], int offset, int len, Map aMap)
 public byte[] getBytes()  { return _bytes; }
 
 /**
+ * Returns the stream bytes as a text string.
+ */
+public String getText()
+{
+    byte bytes[] = decodeStream(); if(bytes==null) return "";
+    try { return new String(bytes); }
+    catch(Exception e) { return "PDFStream.getText: Bytes could not be converted to string: " + e; }
+}
+
+/**
  * Returns the stream dictionary.
  */
 public Map getDict()  { return _dict; }
@@ -173,12 +183,8 @@ public PDFStream clone()
  */
 public String toString()
 {
-    StringBuffer sb = new StringBuffer();
-    for(Map.Entry entry : (Set<Map.Entry>)getDict().entrySet()) {
-        sb.append(entry.getKey()).append(" = ").append(entry.getValue()).append('\n'); }
-    byte bytes[] = decodeStream();
-    try { if(bytes!=null) sb.append(new String(bytes)); }
-    catch(Exception e) { System.err.println(e); }
+    StringBuffer sb = new StringBuffer(PDFUtils.getDictString(getDict()));
+    sb.append(getText());
     return sb.toString();
 }
 

@@ -3,7 +3,7 @@
  */
 package snappdf;
 import java.io.*;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.*;
 import snappdf.read.DecodeCCITTFax;
 import snappdf.read.DecodeLZW;
@@ -12,6 +12,18 @@ import snappdf.read.DecodeLZW;
  * Implementations of pdf decode filters
  */
 public class PDFUtils {
+
+/**
+ * Returns a dictionary as a string.
+ */
+public static String getDictString(Map aMap)
+{
+    StringBuffer sb = new StringBuffer("<<\n");
+    for(Map.Entry entry : (Set<Map.Entry>)aMap.entrySet())
+        sb.append("    /").append(entry.getKey()).append(" = ").append(entry.getValue()).append('\n');
+    sb.append(">>");
+    return sb.toString();    
+}
 
 /**
  * ASCII85 decoder.

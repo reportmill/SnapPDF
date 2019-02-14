@@ -124,19 +124,6 @@ protected void initUI()
     _imageView.setFill(Color.WHITE); _imageView.setBorder(Color.BLACK, 1);
     enableEvents(_imageView, MouseRelease);
     
-    // Get/configure TreeView
-    //  <SplitView name="XRefSplit" title="Structure">  <TreeView name="TreeView" PrefWidth="300" />
-    //_treeView = getView("TreeView", TreeView.class);
-    //_treeView.setResolver(new PDFResolver());
-    //_treeView.getCol(0).setAltPaint(new Color("#F8F8F8"));
-    
-    // Create/add XRef TextArea
-    //TextPane xtextPane = new TextPane();
-    //View xtextPaneUI = xtextPane.getUI(); xtextPaneUI.setGrowWidth(true);
-    //_xtextArea = xtextPane.getTextArea(); _xtextArea.setFont(Font.Arial14);
-    //SplitView xsplit = getView("XRefSplit", SplitView.class);
-    //xsplit.addItem(xtextPaneUI);
-    
     // Get/configure BrowserView
     _browser = getView("BrowserView", BrowserView.class);
     _browser.setResolver(new PDFResolver());
@@ -201,13 +188,8 @@ public String getEntryText(Object anItem)
     Object item = _pfile.getXRefObj(anItem);
     
     // Handle Map
-    if(item instanceof Map) { Map map = (Map)item;
-        StringBuffer sb = new StringBuffer("<<\n");
-        for(Map.Entry entry : (Set<Map.Entry>)map.entrySet())
-            sb.append("    /").append(entry.getKey()).append(" = ").append(entry.getValue()).append('\n');
-        sb.append(">>");
-        return sb.toString();
-    }
+    if(item instanceof Map)
+        return PDFUtils.getDictString((Map)item);
     
     // Handle List
     if(item instanceof List) { List list = (List)item;
@@ -221,6 +203,14 @@ public String getEntryText(Object anItem)
     if(item instanceof PDFXTable)
         return _pfile.getReader().getXRefString();
     
+    // Handle stream
+    if(item instanceof PDFStream) { PDFStream stream = (PDFStream)item;
+        StringBuffer sb = new StringBuffer(getEntryText(stream.getDict()));
+        String text = stream.getText();
+        sb.append("\nstream\n").append(text); if(!text.endsWith("\n")) sb.append('\n'); sb.append("endstream");
+        return sb.toString();
+    }
+    
     // Handle anything else
     return item!=null? item.toString() : "(null)";
 }
@@ -228,28 +218,19 @@ public String getEntryText(Object anItem)
 /**
  * Returns the type string for PDF object.
  */
-public String getTypeString(Object anObj)  { return getTypeString(anObj, false); }
-
-/**
- * Returns the type string for PDF object.
- */
-public String getTypeString(Object anObj, boolean doDict)
+public String getTypeString(Object anObj)
 {
     if(anObj instanceof PDFXEntry) { PDFXEntry xref = (PDFXEntry)anObj;
         Object obj = _pfile.getXRefObj(xref);
-        String str = getTypeString(obj, doDict) + " (" + xref.toString() + ")";
+        String str = getTypeString(obj) + " (" + xref.toString() + ")";
         return str;
     }
 
-    if(anObj instanceof PDFStream) { PDFStream stream = (PDFStream)anObj;
-        Map dict = stream.getDict();
-        String type = (String)dict.get("Type");
-        String stype = (String)dict.get("Subtype"); if(stype!=null) type += ' ' + stype;
-        if(type!=null) return type;
-        return "Stream";
-    }
+    if(anObj instanceof PDFStream) { PDFStream stream = (PDFStream)anObj; Map dict = stream.getDict();
+        return getTypeString(dict).replace("Dict", "Stream"); }
+        
     if(anObj instanceof Map) { Map map = (Map)anObj;
-        String str = "Dict"; if(!doDict) return str;
+        String str = "Dict";
         String type = (String)map.get("Type"); if(type!=null) str = type.substring(1) + ' ' + str;
         String subtype = (String)map.get("Subtype"); if(subtype!=null) str = subtype.substring(1) + ' ' + str;
         return str;
@@ -392,8 +373,8 @@ private class PDFResolver extends TreeResolver {
             TreeNode nodes[] = new TreeNode[map.size()];
             List <String> keys = new ArrayList(map.keySet());
             for(int i=0; i<keys.size(); i++) { String key = keys.get(i); Object obj = map.get(key);
-                String str = obj instanceof PDFXEntry || obj instanceof Map || obj instanceof List? getTypeString(obj) :
-                  '(' + String.valueOf(obj) + ')';
+                String str = obj instanceof PDFXEntry || obj instanceof Map || obj instanceof List?
+                    getTypeString(obj) : '(' + String.valueOf(obj) + ')';
                 nodes[i] = getNode(aParent, obj, '/' + key + ' ' + str); }
             return nodes;
         }
@@ -402,7 +383,7 @@ private class PDFResolver extends TreeResolver {
         if(parent instanceof List) { List list = (List)parent;
             TreeNode nodes[] = new TreeNode[list.size()];
             for(int i=0; i<list.size(); i++) { Object obj = list.get(i);
-                nodes[i] = getNode(aParent, obj, getTypeString(obj, true)); }
+                nodes[i] = getNode(aParent, obj, getTypeString(obj)); }
             return nodes;
         }
         
@@ -416,7 +397,7 @@ private class PDFResolver extends TreeResolver {
     public String getText(Object anItem)
     {
         if(anItem instanceof PDFXTable) return "XRef Table";
-        if(anItem instanceof PDFXEntry) return getTypeString(anItem, true);
+        if(anItem instanceof PDFXEntry) return getTypeString(anItem);
         if(anItem instanceof TreeNode) return ((TreeNode)anItem).text;
         return anItem.toString();
     }

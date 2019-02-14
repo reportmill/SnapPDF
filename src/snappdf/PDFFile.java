@@ -68,7 +68,11 @@ public void setVersion(double aVersion)  { _version = Math.max(_version, aVersio
 /**
  * Returns the version of pdf being generated.
  */
-public String getVersionString()  { return "PDF-" + _version; }
+public String getVersionString()
+{
+    int major = (int)_version, minor = (int)Math.round((_version - major)*10);
+    return "PDF-" + major + '.' + minor;
+}
 
 /**
  * Gets the pdf version as a float.
