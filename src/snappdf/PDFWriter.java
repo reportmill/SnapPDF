@@ -53,6 +53,12 @@ public class PDFWriter extends PDFWriterBase {
     // Map of unique image datas
     List <Image>                _imageDatas = new ArrayList();
     
+    // List of AcroForm fields
+    Map                         _acroFormDict = new HashMap();
+    
+    // List of AcroForm fields
+    List                        _acroFormFields = new ArrayList();
+    
     // Whether writer should include newline and tab characters (like tab, newline, carriage return)
     static boolean              _includeNewlinesDefault;
     
@@ -134,13 +140,13 @@ public byte[] getBytes(DocView aDoc)
     // The trailer
     appendln("trailer");
     appendln("<<");
-    append("/Size ").append(_pfile._xtable.getEntryCount() + 1).appendln();
-    append("/Root ").appendln(_pfile._xtable.getRefString(_pfile._catalogDict));
-    append("/Info ").appendln(_pfile._xtable.getRefString(_pfile._infoDict));
+    append("/Size ").append(_xtable.getEntryCount() + 1).appendln();
+    append("/Root ").appendln(_xtable.getRefString(_pfile._catalogDict));
+    append("/Info ").appendln(_xtable.getRefString(_pfile._infoDict));
     
     // If encryption was specified, add the encryption dict
     if(getEncryptor() != null) 
-        append("/Encrypt ").appendln(_pfile._xtable.getRefString(getEncryptor().getEncryptionDict()));
+        append("/Encrypt ").appendln(_xtable.getRefString(getEncryptor().getEncryptionDict()));
     
     // Add a uniqueID to the trailer
     String idString = _pfile.getFileIDString();
@@ -344,6 +350,25 @@ public Image getUniqueImage(Image anImage)
 }
 
 /**
+ * Adds a Category.AcroForm dict of Field dicts (PDF spec section 12.7.3).
+ */
+public void addAcroFormField(PDFAnnotation.Widget aField)
+{
+    // If first field, add Catalog.AcroForm dict, with AcroForm.Fields array, NeedAppearances and DR
+    if(_acroFormFields.size()==0) {
+        String acroFormXRef = _xtable.addObject(_acroFormDict);
+        _pfile._catalogDict.put("AcroForm", acroFormXRef);
+        _acroFormDict.put("Fields", _acroFormFields);
+        _acroFormDict.put("NeedAppearances", true);
+        _acroFormDict.put("DR", _xtable.getRefString(getPageWriter().getResourcesDict()));
+    }
+    
+    // Add Field
+    String fieldXRef = _xtable.addObject(aField);
+    _acroFormFields.add(fieldXRef);
+}
+
+/**
  * Writes any kind of object to the PDF buffer.
  */
 public void writeXRefEntry(Object anObj)
@@ -379,15 +404,14 @@ public void writeXRefEntry(Object anObj)
     }
     
     // Handle Maps
-    else if(anObj instanceof Map) { Map <String,Object>map = (Map)anObj;
+    else if(anObj instanceof Map) { Map <String,Object> map = (Map)anObj;
     
         // Write dictionary contents surrounded by dictionary brackets
         appendln("<<");
         for(String key : map.keySet()) {
             
             // Skip entries that we put in for caching purposes
-            if(key.startsWith("_rbcached"))
-                continue;
+            if(key.startsWith("_rbcached")) continue;
             
             append('/').append(key).append(' ');
             writeXRefEntry(map.get(key));
@@ -440,7 +464,7 @@ public void writeXRefEntry(Object anObj)
         append(anObj.toString());
     
     // Complain about anything else
-    else System.err.println("RMPDFWriter: Unsupported PDF object: " + anObj.getClass().getName());
+    else System.err.println("PDFWriter: Unsupported PDF object: " + anObj.getClass().getName());
 }
 
 /**

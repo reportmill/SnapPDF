@@ -156,16 +156,14 @@ public String addObject(Object anObj)  { return addObject(anObj, false); }
 /**
  * Adds an object and returns the string by which the object can be referenced inside the pdf file.
  */
-public String addObject(Object anObj, boolean definitelyIsNew)
+public String addObject(Object anObj, boolean isDefinitelyNew)
 {
-    // Check to see if it's there already
-    int index = definitelyIsNew? -1 : ListUtils.indexOfId(_entries, anObj);
-
+    // Get index of object and add if new
+    int index = isDefinitelyNew? -1 : indexOfEntry(anObj);
     if(index == -1) {
         _entries.add(anObj);
         index = _entries.size();
     }
-    else index++;
     
     // Return
     return getRefString(index);

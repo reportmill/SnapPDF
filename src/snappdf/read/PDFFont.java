@@ -31,7 +31,7 @@ public static Font getFont(Map fontDict, PDFFile srcfile)
     if(fontDict==null) return getDefaultFont();
     
     // First check to see if we've created & cached the font already
-    Font awtFont = (Font)fontDict.get("_snapcache_awtfont_");
+    Font awtFont = (Font)fontDict.get("_rbcached_awtfont_");
     if(awtFont != null)
         return awtFont;
 
@@ -89,7 +89,7 @@ public static Font getFont(Map fontDict, PDFFile srcfile)
     }
 
     // cache it
-    fontDict.put("_snapcache_awtfont_",awtFont);
+    fontDict.put("_rbcached_awtfont_",awtFont);
     return awtFont;
 }
 

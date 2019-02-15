@@ -15,6 +15,9 @@ public class PDFPageWriter extends PDFWriterBase {
     // The pdf file this page is part of
     PDFFile               _pfile;
     
+    // The XRef table for file
+    PDFXTable             _xtable;
+    
     // The master writer for this page writer
     PDFWriter             _writer;
     
@@ -40,14 +43,16 @@ public PDFPageWriter(PDFFile aFile, PDFWriter aWriter)
 {
     // Cache PDF file and add this to pages tree and xref table
     _writer = aWriter; _pfile = aFile;
+    _xtable = _pfile.getXRefTable();
     _pfile._pageTree.addPage(this);
-    _pfile.getXRefTable().addObject(this);
+    _xtable.addObject(this);
         
     // Create resources
     _resources = new Hashtable(4);
-    _resources.put("Font", _pfile.getXRefTable().getRefString(aWriter.getFonts()));
-    _resources.put("XObject", _pfile.getXRefTable().getRefString(aWriter.getImages()));
-    _resources.put("ProcSet", "[/PDF /Text /ImageC /ImageB]");
+    _resources.put("Font", _xtable.getRefString(aWriter.getFonts()));
+    _resources.put("XObject", _xtable.getRefString(aWriter.getImages()));
+    _resources.put("ProcSet", "[/PDF /Text /ImageC /ImageI /ImageB]");
+    _xtable.addObject(_resources, true);
 }
 
 /**
@@ -236,11 +241,22 @@ public PDFAnnotation getAnnotation(int anIndex)  { return _annotations.get(anInd
 /**
  * Adds an annotation to the page.
  */
-public void addAnnotation(PDFAnnotation annot)
+public void addAnnotation(PDFAnnotation anAnnot)
 {
+    // Add annotation to list
     if(_annotations==null) _annotations = new ArrayList();
-    _annotations.add(annot);
+    _annotations.add(anAnnot);
+    
+    // If Widget, add to Catalog.AcroForm dict, otherwise, just add to XRef Table
+    if(anAnnot instanceof PDFAnnotation.Widget)
+        _writer.addAcroFormField((PDFAnnotation.Widget)anAnnot);
+    else _xtable.addObject(anAnnot);
 }
+
+/**
+ * Returns the resource dict for this page.
+ */
+public Map getResourcesDict()  { return _resources; }
 
 /**
  * Returns the named resource dict for this page.
@@ -266,7 +282,7 @@ public String addColorspace(Object cspace)
 {
     // Get colorspace dictionary from resources (create and add it, if absent)
     Map map = getResourceMap("ColorSpace");
-    String ref = _pfile.getXRefTable().addObject(cspace);
+    String ref = _xtable.addObject(cspace);
     String name;
     
     // Only add colorspace once per page
@@ -290,7 +306,7 @@ public String addPattern(Object aPattern)
 {
     // Get colorspace dictionary from resources (create and add it, if absent)
     Map map = getResourceMap("Pattern");
-    String ref = _pfile.getXRefTable().addObject(aPattern);
+    String ref = _xtable.addObject(aPattern);
     String name;
     
     // Only add pattern once per page
@@ -314,7 +330,7 @@ public String addPattern(Object aPattern)
 public void resolvePageReferences(PDFPageTree pages)
 {
     for(int i=0, iMax=getAnnotationCount(); i<iMax; i++)
-        getAnnotation(i).resolvePageReferences(pages, _pfile.getXRefTable(), this);
+        getAnnotation(i).resolvePageReferences(pages, _xtable, this);
 }
 
 /**
@@ -348,16 +364,13 @@ protected PDFStream createStream()
  */
 public void writePDF(PDFWriter aWriter)
 {
-    // Get XRef and pdf buffer
-    PDFXTable xref = _pfile.getXRefTable();
-    
     // Write page basic info
-    aWriter.append("<< /Type /Page /Parent ").appendln(xref.getRefString(_pfile.getPagesTree()));
+    aWriter.append("<< /Type /Page /Parent ").appendln(_xtable.getRefString(_pfile.getPagesTree()));
 
     // Add stream if it's there instead of contents
     PDFStream stream = createStream();
     if(stream!=null)
-        aWriter.append("/Contents ").appendln(xref.addObject(stream, true));
+        aWriter.append("/Contents ").appendln(_xtable.addObject(stream, true));
   
     // Write page media box
     if(!_mediaBox.isEmpty())
@@ -368,12 +381,14 @@ public void writePDF(PDFWriter aWriter)
         aWriter.append("/CropBox ").append(_cropBox).appendln();
 
     // Write page resources
-    if(_resources!=null)
-        aWriter.append("/Resources ").appendln(xref.addObject(_resources, true));
+    aWriter.append("/Resources ").appendln(_xtable.getRefString(_resources));
     
-    // Write page annotations
-    if(_annotations!=null)
-        aWriter.append("/Annots ").appendln(xref.addObject(_annotations, true));
+    // Write page annotations: Create new list of xrefs and write
+    if(_annotations!=null) {
+        aWriter.append("/Annots ");
+        List axrefs = new ArrayList(); for(PDFAnnotation a : _annotations) axrefs.add(_xtable.getRefString(a));
+        aWriter.writeXRefEntry(axrefs);
+    }
     
     // Finish page
     aWriter.append(">>");
