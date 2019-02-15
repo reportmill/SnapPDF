@@ -350,6 +350,11 @@ public Image getUniqueImage(Image anImage)
 }
 
 /**
+ * Returns the current number of AcroForm fields.
+ */
+public int getAcroFormFieldCount()  { return _acroFormFields.size(); }
+
+/**
  * Adds a Category.AcroForm dict of Field dicts (PDF spec section 12.7.3).
  */
 public void addAcroFormField(PDFAnnotation.Widget aField)
