@@ -371,6 +371,9 @@ public static class DictionaryHandler extends ParseHandler <HashMap> {
         // Handle anything else ("<<", ">>"): Make sure map gets created in case of empty dict
         else getPart();
     }
+    
+    /** Returns the part class. */
+    protected Class <HashMap> getPartClass()  { return HashMap.class; }
 }
 
 /**
@@ -388,6 +391,9 @@ public static class ArrayHandler extends ParseHandler <ArrayList> {
         // Handle anything else ("[", "]"): Make sure list gets created in case of empty array
         else getPart();
     }
+    
+    /** Returns the part class. */
+    protected Class <ArrayList> getPartClass()  { return ArrayList.class; }
 }
 
 /**
@@ -418,6 +424,9 @@ public static class ObjectHandler extends ParseHandler <Object> {
         // Handle anything else
         else _part = aNode.getCustomNode();
     }
+    
+    /** Returns the part class. */
+    protected Class <Object> getPartClass()  { return Object.class; }
 }
 
 /**
@@ -435,6 +444,9 @@ public static class ObjectRefHandler extends ParseHandler <PDFXEntry> {
             _part = reader.getXRef(index);
         }
     }
+    
+    /** Returns the part class. */
+    protected Class <PDFXEntry> getPartClass()  { return PDFXEntry.class; }
 }
 
 /**
@@ -449,6 +461,9 @@ public static class ObjectDefHandler extends ParseHandler <Object> {
         if(anId=="Object")
             _part = aNode.getCustomNode();
     }
+    
+    /** Returns the part class. */
+    protected Class <Object> getPartClass()  { return Object.class; }
 }
 
 /**
@@ -466,6 +481,9 @@ public static class LeafHandler extends ParseHandler <Object> {
             else if(_part.equals("false")) _part = Boolean.FALSE;
         }
     }
+    
+    /** Returns the part class. */
+    protected Class <Object> getPartClass()  { return Object.class; }
 }
 
 /**
@@ -480,6 +498,9 @@ public static class IntegerHandler extends ParseHandler <Integer> {
         String s = aNode.getString();
         _part = Integer.valueOf(s);
     }
+    
+    /** Returns the part class. */
+    protected Class <Integer> getPartClass()  { return Integer.class; }
 }
 
 /**
@@ -494,6 +515,9 @@ public static class RealHandler extends ParseHandler <Double> {
         String s = aNode.getString();
         _part = Double.valueOf(s);
     }
+    
+    /** Returns the part class. */
+    protected Class <Double> getPartClass()  { return Double.class; }
 }
 
 /**
@@ -503,6 +527,9 @@ public static class NameHandler extends ParseHandler <String> {
 
     /** ParseHandler method. */
     protected void parsedOne(ParseNode aNode, String anId)  {  _part = aNode.getString(); }
+    
+    /** Returns the part class. */
+    protected Class <String> getPartClass()  { return String.class; }
 }
 
 /**
@@ -530,6 +557,9 @@ public static class StringHandler extends ParseHandler <String> {
         _part = new String(bytes, start, end-start);
         parser.setCharIndex(end);
     }
+    
+    /** Returns the part class. */
+    protected Class <String> getPartClass()  { return String.class; }
 }
 
 /**
@@ -539,6 +569,9 @@ public static class HexStringHandler extends ParseHandler <String> {
 
     /** ParseHandler method. */
     protected void parsedOne(ParseNode aNode, String anId)  { _part = aNode.getString(); }
+    
+    /** Returns the part class. */
+    protected Class <String> getPartClass()  { return String.class; }
 }
 
 }
