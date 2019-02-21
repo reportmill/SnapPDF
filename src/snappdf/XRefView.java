@@ -3,9 +3,7 @@
  */
 package snappdf;
 import java.util.*;
-import snap.gfx.Color;
-import snap.gfx.Font;
-import snap.gfx.Image;
+import snap.gfx.*;
 import snap.util.SnapUtils;
 import snap.view.*;
 import snap.viewx.TextPane;
@@ -43,6 +41,20 @@ public class XRefView extends ViewOwner {
 public XRefView(Object aSource)  { setSource(aSource); }
 
 /**
+ * Returns the name.
+ */
+public String getName()  { return _name; } String _name = "Sample.pdf";
+
+/**
+ * Sets the name.
+ */
+public void setName(String aString)
+{
+    _name = aString;
+    if(isUISet()) setViewText("NameLabel", "PDF Inspector:  " + _name);
+}
+
+/**
  * Returns the source.
  */
 public Object getSource()  { return _src; }
@@ -54,6 +66,9 @@ public void setSource(Object aSource)
 {
     if(aSource==_src) return;
     _src = aSource;
+    
+    if(_src instanceof WebURL)
+        setName(((WebURL)_src).getPathName());
     
     // Get source bytes and reset file
     byte bytes[] = SnapUtils.getBytes(_src);
@@ -76,8 +91,7 @@ public void setPDFFile(PDFFile aFile)
     getUI();
     
     // Set image
-    Image img = _pfile!=null? _pfile.getPage(0).getImage() : null;
-    _imageView.setImage(img);
+    resetImage();
     
     // Set Browser items
     Object items[] = new PDFResolver().getChildren(_pfile);
@@ -87,6 +101,23 @@ public void setPDFFile(PDFFile aFile)
     // Set Text
     String str = getFileString();
     _ptextArea.setText(str);
+    
+}
+
+/**
+ * Resets the image.
+ */
+void resetImage()
+{
+    // For TeaVM
+    /*TextArea text = new TextArea(); text.setFont(new Font("Arial", 92)); text.setFill(Color.WHITE);
+    text.setPadding(40,40,40,40); text.setTextFill(Color.GRAY);
+    text.setAlign(Pos.CENTER); text.setSize(612,792); text.setWrapText(true);
+    String str = "Render\nnot yet available"; text.setText(str);
+    Image img = ViewUtils.getImage(text);*/
+    
+    Image img = _pfile!=null? _pfile.getPage(_pindex).getImage() : null;
+    _imageView.setImage(img);
 }
 
 /**
@@ -101,9 +132,7 @@ public void setPage(int anIndex)
 {
     if(anIndex==_pindex) return;
     _pindex = anIndex;
-
-    Image img = _pfile!=null? _pfile.getPage(_pindex).getImage() : null;
-    _imageView.setImage(img);
+    resetImage();
 }
 
 /**
@@ -119,8 +148,13 @@ protected void initUI()
     // Get TabView
     TabView tabView = getView("TabView", TabView.class);
     
+    // Configure NameLabel
+    Label label = getView("NameLabel", Label.class); label.setEffect(new ShadowEffect());
+    label.setTextFill(Color.WHITE); label.setText("PDF Inspector: Sample.pdf");
+    label.getParent().setFill(new Color(.9)); label.getParent().setBorder(Color.BLACK, 1);
+    
     // Get/configure ImageView
-    _imageView = getView("ImageView", ImageView.class); _imageView.getParent().setPrefSize(820,940);
+    _imageView = getView("ImageView", ImageView.class); //_imageView.getParent().setPrefSize(820,940);
     _imageView.setFill(Color.WHITE); _imageView.setBorder(Color.BLACK, 1);
     enableEvents(_imageView, MouseRelease);
     
@@ -170,10 +204,23 @@ protected void respondUI(ViewEvent anEvent)
     // Handle DragDrop
     if(anEvent.isDragDrop()) {
         anEvent.acceptDrag();
-        WebURL url = anEvent.getClipboard().getFiles().get(0).getSourceURL();
+        ClipboardData cdata = anEvent.getClipboard().getFiles().get(0);
+        if(!cdata.isLoaded()) {
+            cdata.addLoadListener(cd -> droppedClipboardFinishedLoading(cdata));
+            anEvent.dropComplete();
+            return;
+        }
+        WebURL url = cdata.getSourceURL();
         setSource(url);
         anEvent.dropComplete();
     }
+}
+
+void droppedClipboardFinishedLoading(ClipboardData aCD)
+{
+    byte bytes[] = aCD.getBytes();
+    setName(aCD.getName());
+    setSource(bytes);
 }
 
 /**
@@ -275,6 +322,7 @@ static boolean isBinary(char c)  { return Character.isISOControl(c) || !Characte
  */
 public static void main(String args[])
 {
+    //snaptea.TV.set();
     // Get default doc source
     Object src = args.length>0? args[0] : null; if(src==null) src = WebURL.getURL(XRefView.class, "Sample.pdf");
     WebURL url = WebURL.getURL(src); if(url.getFile()==null) url = null;
@@ -283,6 +331,7 @@ public static void main(String args[])
     XRefView xrv = new XRefView(url);
     xrv.getUI().setPrefSize(1000,1000);
     xrv.getWindow().setTitle(url.getPathName() + " - " + url.getPathNameSimple());
+    //if(SnapUtils.isTeaVM) xrv.getWindow().setMaximized(true);
     xrv.setWindowVisible(true);
 }
 
