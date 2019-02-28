@@ -187,9 +187,17 @@ public void setLineJoin(int aLineJoin)
 }
     
 /**
- * Override to write Image.
+ * Writes an image in given bounds.
  */
-protected void writeImage(Image anImage, double x, double y, double width, double height)
+public void writeImage(Image anImage, double aX, double aY)
+{
+    writeImage(anImage, aX, aY, anImage.getWidth(), anImage.getHeight());
+}
+
+/**
+ * Writes an image in given bounds.
+ */
+public void writeImage(Image anImage, double x, double y, double width, double height)
 {
     // Get image and image bounds (just return if missing or invalid)
     if(anImage==null) return;
