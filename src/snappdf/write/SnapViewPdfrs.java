@@ -60,7 +60,7 @@ public static class SnapImageViewPdfr <T extends ImageView> extends SnapViewPdfr
 public static class SnapPageViewPdfr <T extends PageView> extends SnapViewPdfr <T> {
 
     /** Writes a given View hierarchy to a PDF file (recursively). */
-    protected void writeViewBefore(T aPageView, PDFWriter aWriter)
+    public void writePDF(T aPageView, PDFWriter aWriter)
     {
         // Get pdf page
         PDFPageWriter pdfPage = aWriter.getPageWriter();
@@ -75,10 +75,13 @@ public static class SnapPageViewPdfr <T extends PageView> extends SnapViewPdfr <
         
         // Flip coords to match java2d model
         pdfPage.append("1 0 0 -1 0 ").append(aPageView.getHeight()).appendln(" cm");    
+    
+        // Write View children
+        writeViewChildren(aPageView, aWriter);
     }
     
     /** Override to suppress grestore. */
-    protected void writeViewAfter(T aView, PDFWriter aWriter)  { }
+    //protected void writeViewAfter(T aView, PDFWriter aWriter)  { }
 }
 
 }
