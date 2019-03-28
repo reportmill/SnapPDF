@@ -8,7 +8,7 @@ import snappdf.write.PDFPageTree;
 public class PDFFile {
 
     // The PDF version being generated
-    double                  _version = 1.2f;
+    double                  _version = 1.4f;
     
     // The XRefTable
     public PDFXTable        _xtable;
@@ -62,6 +62,7 @@ public double getVersion()  { return _version; }
 
 /**
  * Sets the version of the pdf being generated.
+ * Current default is 1.4, but generated pdf is really 1.2 unless there is image alpha or annotations.
  */
 public void setVersion(double aVersion)  { _version = Math.max(_version, aVersion); }
 
