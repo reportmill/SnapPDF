@@ -50,7 +50,7 @@ public PDFPageWriter(PDFFile aFile, PDFWriter aWriter)
     // Create resources
     _resources = new Hashtable(4);
     _resources.put("Font", _xtable.getRefString(aWriter.getFonts()));
-    _resources.put("XObject", _xtable.getRefString(aWriter.getImages()));
+    _resources.put("XObject", _xtable.getRefString(aWriter.getImageRefs()));
     _resources.put("ProcSet", "[/PDF /Text /ImageC /ImageI /ImageB]");
     _xtable.addObject(_resources, true);
 }
@@ -203,7 +203,7 @@ public void writeImage(Image anImage, double x, double y, double width, double h
     if(anImage==null) return;
     
     // Add image
-    _writer.addImageData(anImage);
+    _writer.addImage(anImage);
 
     // Gsave
     gsave();

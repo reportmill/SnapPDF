@@ -170,28 +170,16 @@ public static void writeShapeFill(Shape aShape, Color aColor, PDFWriter aWriter)
  */
 public static void writeImagePaint(PDFWriter aWriter, ImagePaint anImageFill, Shape aPath, Rect bounds)
 {
-    // Get image fill and image data (just return if missing or invalid)
-    Image idata = anImageFill.getImage(); //if(idata==null || !idata.isValid()) return;
-    
-    // Get whether image fill is for pdf image (and just return if no page contents - which is apparently legal)
-    boolean pdfImage = false; //idata instanceof RMImageDataPDF;
-    //if(pdfImage) { RMImageDataPDF pdata = (RMImageDataPDF)idata;
-    //    if(pdata.getPDFFile().getPage(idata.getPageIndex()).getPageContentsStream()==null) return; }
-
-    // Add image data
-    aWriter.addImageData(idata);
+    // Get image (just return if missing or invalid) and name
+    Image img = anImageFill.getImage(); if(img==null) return;
+    String iname = aWriter.getImageName(img);
+    aWriter.addImage(img);
 
     // Get PDF page
     PDFPageWriter pdfPage = aWriter.getPageWriter();
     
     // Gsave
     pdfPage.gsave();
-    
-    // If pdf image, reset gstate defaults
-    if(pdfImage) {
-        pdfPage.setLineCap(0);
-        pdfPage.setLineJoin(0);
-    }
     
     // If path was provided, clip to it
     if(aPath!=null) {
@@ -243,8 +231,7 @@ public static void writeImagePaint(PDFWriter aWriter, ImagePaint anImageFill, Sh
                 
                 // Gsave, scale CTM, Do image and Grestore
                 pdfPage.gsave();
-                if(pdfImage) pdfPage.transform(1, 0, 0, -1, x, height + y);
-                else pdfPage.transform(width, 0, 0, -height, x, height + y);
+                pdfPage.transform(width, 0, 0, -height, x, height + y);
                 pdfPage.appendln("/" + idata.getName() + " Do");
                 pdfPage.grestore();
             }
@@ -257,17 +244,11 @@ public static void writeImagePaint(PDFWriter aWriter, ImagePaint anImageFill, Sh
         // Get image bounds width and height
         double width = bounds.width, height = bounds.height;
 
-        // pdfImage writes out scale of imageBounds/imageSize
-        /*if(pdfImage) {
-            width /= anImageFill.getImageWidth();
-            height /= anImageFill.getImageHeight();
-        }*/
-    
         // Apply CTM - image coords are flipped from page coords ( (0,0) at upper-left )
         pdfPage.writeTransform(width, 0, 0, -height, anImageFill.getX() + bounds.x, anImageFill.getY() + bounds.getMaxY());
         
         // Do image
-        pdfPage.appendln("/" + idata.getName() + " Do");
+        pdfPage.appendln("/" + iname + " Do");
     //}
         
     // Grestore

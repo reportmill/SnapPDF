@@ -47,8 +47,8 @@ public class PDFWriter extends PDFWriterBase {
     // Font entry map
     Map <String, PDFFontEntry>  _fonts = new Hashtable();
     
-    // Map of image data names to image reference strings
-    public Map <String,String>  _images = new Hashtable();
+    // Map of image names to image xtable reference strings
+    Map <String,String>         _imageRefs = new Hashtable();
     
     // Map of unique image datas
     List <Image>                _imageDatas = new ArrayList();
@@ -88,8 +88,8 @@ public byte[] getBytes(DocView aDoc)
     _pfile._catalogDict.put("Pages", _xtable.addObject(_pfile._pageTree));
 
     // Add fonts and images to xref
-    _xtable.addObject(_fonts);
-    _xtable.addObject(_images);
+    _xtable.addObject(getFonts());
+    _xtable.addObject(getImageRefs());
     
     // Tell acrobat reader not to scale when printing by default (only works in PDF 1.6, but is harmless in < 1.6)
     _pfile._catalogDict.put("ViewerPreferences", PDFWriter.getViewerPreferencesDefault());
@@ -319,9 +319,9 @@ public PDFFontEntry getFontEntry(Font aFont, int fontCharSet)
 }
 
 /**
- * Returns a map of image data names to image data references.
+ * Returns a map of image names to image reference strings.
  */
-public Map <String,String> getImages()  { return _images; }
+public Map <String,String> getImageRefs()  { return _imageRefs; }
 
 /**
  * Returns the image name.
@@ -329,14 +329,14 @@ public Map <String,String> getImages()  { return _images; }
 public String getImageName(Image anImage)  { return "Image" + System.identityHashCode(anImage); }
 
 /**
- * Adds an image data (uniqued) to file reference table, if not already present. 
+ * Adds an image (uniqued) to file reference table, if not already present. 
  */
-public void addImageData(Image anImage)
+public void addImage(Image anImage)
 {
     // If not present, unique, add to xref table and add to image refs
     String iname = getImageName(anImage);
-    if(!_images.containsKey(iname))
-        _images.put(iname, _xtable.addObject(getUniqueImage(anImage)));
+    if(!_imageRefs.containsKey(iname))
+        _imageRefs.put(iname, _xtable.addObject(getUniqueImage(anImage)));
 }
 
 /**

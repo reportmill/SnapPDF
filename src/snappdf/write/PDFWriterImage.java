@@ -17,7 +17,7 @@ public class PDFWriterImage {
 public static void writeImage(PDFWriter aWriter, Image anImage)
 {
     // Get image bits per sample and samples per pixel
-    int bps = 8; //anImage.getBitsPerSample();
+    int bps = anImage.getBitsPerSample();
     int spp = anImage.getSamplesPerPixel();
     
     // Get image color space and whether image is jpg
