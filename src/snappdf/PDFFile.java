@@ -62,7 +62,8 @@ public double getVersion()  { return _version; }
 
 /**
  * Sets the version of the pdf being generated.
- * Current default is 1.4, but generated pdf is really 1.2 unless there is image alpha or annotations.
+ * Current default is 1.4, but generated pdf is really 1.2 unless there is image alpha, annotations, patterns or
+ * encryption (for 128 bit key).
  */
 public void setVersion(double aVersion)  { _version = Math.max(_version, aVersion); }
 

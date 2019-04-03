@@ -220,10 +220,6 @@ public void writeImage(Image anImage, double x, double y, double width, double h
         
     // Grestore
     grestore();
-    
-    // If image has alpha, declare output to be PDF-1.4
-    if(anImage.hasAlpha() && anImage.getSamplesPerPixel()==4)
-        _writer.getPDFFile().setVersion(1.4f);
 }
 
 /**
@@ -321,11 +317,10 @@ public String addPattern(Object aPattern)
     if(map.containsValue(ref))
         name = (String)MapUtils.getKey(map, aPattern);
     
-    // Get pattern name (eg., /P1, P2, etc.) and add to pattern dict (and set version to 1.3)
+    // Get pattern name (eg., /P1, P2, etc.) and add to pattern dict (PDF version neeeds to be 1.3)
     else {
         name = "P" + (map.size()+1);
         map.put(name, ref);
-        _pfile.setVersion(1.3f);
     }
 
     // Return name

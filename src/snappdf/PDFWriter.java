@@ -256,18 +256,15 @@ public void setUnmodifiable(String ownerPwd)
  * If both passwords are null, the file will not be password protected, but it will still be encrypted.
  * Fine-grained access can be limited by setting accessFlags, to limit such things as printing or editing the file.
  * See PDFSecurityHandler for a list of the access flag constants. (or the pdf spec v1.6, pp. 99-100)
+ * Since we're using 128 bit keys, the pdf version needs to be 1.4.
  */
 public void setAccessPermissions(String ownerPwd, String userPwd, int accessFlags)
 {
     // Create encryptor
     _encryptor = new PDFEncryptor(_pfile.getFileID(), ownerPwd, userPwd, accessFlags);
     
-    // Add the encryption dictionary to the file
+    // Add the encryption dictionary to the file.
     _xtable.addObject(_encryptor.getEncryptionDict());
-    
-    // Since we're using 128 bit keys, bump the pdf revision to 1.4. If we add a parameter to select the
-    // encryption scheme, we could optionally use 40 bit keys and leave the version at 1.2
-    _pfile.setVersion(1.4f);
 }
 
 /**
