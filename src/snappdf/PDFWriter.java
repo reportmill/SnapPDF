@@ -75,7 +75,8 @@ public byte[] getBytes(DocView aDoc)
     
     // Init and add info dict to xref
     _xtable = _pfile._xtable = new PDFXTable(_pfile, null);
-    _pfile._infoDict.put("CreationDate", new SimpleDateFormat("(dd MMM yyy HH:mm)").format(new Date()));
+    //_pfile._infoDict.put("CreationDate", new SimpleDateFormat("(dd MMM yyy HH:mm)").format(new Date()));
+    _pfile._infoDict.put("CreationDate", "(D:" + new SimpleDateFormat("yyyMMddHHmmss").format(new Date()) + ")");
     _xtable.addObject(_pfile._infoDict);
 
     // Init and add catalog to xref
