@@ -161,14 +161,28 @@ public Map getCatalogDict()  { return _catalogDict; }
 public PDFPageTree getPagesTree()  { return _pageTree; }
 
 /**
+ * Returns the author of the pdf file.
+ */
+public String getAuthor()  { return (String)_infoDict.get("Author"); }
+
+/**
  * Sets the author of the pdf file.
  */
-public void setAuthor(String  s)  { _infoDict.put("Author", "(" + s + ")"); }
+public void setAuthor(String aStr)  { addInfoDictValue("Author", aStr); }
 
 /**
  * Sets the creator of the pdf file.
  */
-public void setCreator(String s)  { _infoDict.put("Creator", "(" + s + ")"); }
+public void setCreator(String aStr)  { addInfoDictValue("Creator", aStr); }
+
+/**
+ * Adds an InfoDict value.
+ */
+public void addInfoDictValue(String aKey, String aValue)
+{
+    String str = aValue; if(!str.startsWith("(")) str = "(" + str + ")";
+    _infoDict.put(aKey, str);
+}
 
 /**
  * Generates and returns a unique file identifier.

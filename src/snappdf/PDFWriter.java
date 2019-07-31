@@ -75,8 +75,7 @@ public byte[] getBytes(DocView aDoc)
     
     // Init and add info dict to xref
     _xtable = _pfile._xtable = new PDFXTable(_pfile, null);
-    //_pfile._infoDict.put("CreationDate", new SimpleDateFormat("(dd MMM yyy HH:mm)").format(new Date()));
-    _pfile._infoDict.put("CreationDate", "(D:" + new SimpleDateFormat("yyyMMddHHmmss").format(new Date()) + ")");
+    _pfile.addInfoDictValue("CreationDate", "D:" + new SimpleDateFormat("yyyMMddHHmmss").format(new Date()));
     _xtable.addObject(_pfile._infoDict);
 
     // Init and add catalog to xref
@@ -104,7 +103,7 @@ public byte[] getBytes(DocView aDoc)
     _compress = false; //aDoc.getCompress();
     
     // Set PDF file author
-    _pfile.setAuthor("Snap User");
+    if(_pfile.getAuthor()==null) _pfile.setAuthor("Snap User");
     
     // Set PDF file creator
     String version = "SnapPDF 1.0";
