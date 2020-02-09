@@ -106,7 +106,7 @@ public class PDFWriter extends PDFWriterBase {
         _xtable.addObject(getImageRefs());
 
         // Tell acrobat reader not to scale when printing by default (only works in PDF 1.6, but is harmless in < 1.6)
-        _pfile._catalogDict.put("ViewerPreferences", PDFWriter.getViewerPreferencesDefault());
+        _pfile._catalogDict.put("ViewerPreferences", getViewerPreferencesDefault());
 
         // Get doc pdf attributes
         _compress = false; //aDoc.getCompress();
