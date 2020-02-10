@@ -110,6 +110,16 @@ public class PDPainter extends PainterImpl {
         // Do normal version
         super.drawImage(anImg, aTrans);
 
+        // If rotated, complain
+        if (aTrans.isRotated()) {
+            System.err.println("PDPainter.drawImage: Not implemented for rotated dest bounds");
+        }
+
+        // Get dest bounds
+        Rect srcBnds = new Rect(0, 0, anImg.getWidth(), anImg.getHeight());
+        Rect dstBnds = srcBnds.copyFor(aTrans).getBounds();
+        drawImage(anImg, srcBnds.x, srcBnds.y, srcBnds.width, srcBnds.height,
+                dstBnds.x, dstBnds.y, dstBnds.width, dstBnds.height);
     }
 
     /** Draw image in rect. */
@@ -118,6 +128,17 @@ public class PDPainter extends PainterImpl {
         // Do normal version
         super.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
 
+        // Get page writer, image and image bounds (just return if missing or invalid)
+        PDFPageWriter pwriter = _writer.getPageWriter();
+
+        // If source bounds not image, complain
+        if (sx!=0 || sy!=0 || sw!=img.getWidth() || sh!=img.getHeight()) {
+            System.err.println("PDPainter.drawImage: Not implemented for custom source bounds");
+        }
+
+        // Get dest bounds
+        Rect dstBnds = new Rect(dx, dy, dw, dh);
+        pwriter.writeImage(img, dstBnds, null);
     }
 
     /** Draw string at location with char spacing. */

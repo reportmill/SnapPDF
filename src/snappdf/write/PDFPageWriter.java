@@ -223,6 +223,35 @@ public void writeImage(Image anImage, double x, double y, double width, double h
 }
 
 /**
+ * Write image.
+ */
+public void writeImage(Image anImage, Rect destBounds, Shape aClipShape)
+{
+    // Get image data (just return if missing) and image name and add image
+    String iname = _writer.getImageName(anImage);
+    _writer.addImage(anImage);
+
+    // Get PDF page and gsave
+    PDFPageWriter pdfPage = _writer.getPageWriter();
+    pdfPage.gsave();
+
+    // Apply clip if provided
+    if(aClipShape!=null) {
+        pdfPage.writePath(aClipShape);
+        pdfPage.append("W n ");
+    }
+
+    // Apply CTM - image coords are flipped from page coords ( (0,0) at upper-left )
+    double width = destBounds.getWidth();
+    double height = destBounds.getHeight();
+    pdfPage.writeTransform(width, 0, 0, -height, destBounds.x, destBounds.getMaxY());
+
+    // Do image and grestore
+    pdfPage.appendln("/" + iname + " Do");
+    pdfPage.grestore();
+}
+
+/**
  * Saves the current graphics state of the writer.
  */
 public void gsave()  { _gstack.gsave(); appendln("q"); }

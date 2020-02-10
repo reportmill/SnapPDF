@@ -18,58 +18,61 @@ import snap.util.SnapUtils;
 public class PDFWriter extends PDFWriterBase {
     
     // The PDFFile
-    protected PDFFile           _pfile;
+    protected PDFFile _pfile;
 
     // The file default page size
-    protected Size              _pageSize = new Size(612, 792);
+    protected Size _pageSize = new Size(612, 792);
+
+    // The number of pages
+    private int _pageCount;
     
     // The XRefTable
-    protected PDFXTable         _xtable;
+    protected PDFXTable _xtable;
 
     // The current PDF page
-    protected PDFPageWriter     _pageWriter;
+    protected PDFPageWriter _pageWriter;
 
     // Whether PDF stream objects should be compressed
-    protected boolean           _compress;
+    protected boolean _compress;
     
     // Whether writer should include newline and tab characters (like tab, newline, carriage return)
-    boolean                     _includeNewlines = _includeNewlinesDefault;
+    private boolean _includeNewlines = _includeNewlinesDefault;
     
     // Shared deflater
-    Deflater                    _deflater = new Deflater(6, false);
+    private Deflater _deflater = new Deflater(6, false);
 
     // Security handler for adding password protection
-    PDFEncryptor                _encryptor;
+    private PDFEncryptor _encryptor;
     
     // Map of pdfread XRefs to pdfwrite XRefs
-    public Map                  _readerWriterXRefMap = new HashMap();
+    public Map _readerWriterXRefMap = new HashMap();
   
     // The current font entry
-    PDFFontEntry                _fontEntry;
+    private PDFFontEntry _fontEntry;
     
     // Font entry map
-    Map <String, PDFFontEntry>  _fonts = new Hashtable();
+    private Map<String, PDFFontEntry> _fonts = new Hashtable();
     
     // Map of image names to image xtable reference strings
-    Map <String,String>         _imageRefs = new Hashtable();
+    private Map<String,String> _imageRefs = new Hashtable();
     
     // Map of unique image datas
-    List <Image>                _imageDatas = new ArrayList();
+    private List <Image> _imageDatas = new ArrayList();
     
     // List of AcroForm fields
-    Map                         _acroFormDict = new HashMap();
+    private Map _acroFormDict = new HashMap();
     
     // List of AcroForm fields
-    List                        _acroFormFields = new ArrayList();
+    private List _acroFormFields = new ArrayList();
 
     // The written version string
-    String                      _versionStr;
+    private String _versionStr;
     
     // Whether writer should include newline and tab characters (like tab, newline, carriage return)
-    static boolean              _includeNewlinesDefault;
+    private static boolean _includeNewlinesDefault;
     
     // The default viewer preferences map
-    static Map <String,String>  _viewerPreferencesDefault = Collections.singletonMap("PrintScaling", "/None");
+    private static Map<String,String>  _viewerPreferencesDefault = Collections.singletonMap("PrintScaling", "/None");
 
     /**
      * Returns the default page size.
@@ -193,6 +196,16 @@ public class PDFWriter extends PDFWriterBase {
         // Get pdf page, set media box and add to pages tree and xref
         _pageWriter = new PDFPageWriter(_pfile, this);
         _pageWriter.setMediaBox(aRect);
+
+        // Write page header comment
+        int page = 1; //aPageView.page();
+        _pageWriter.appendln("\n% ------ page " + (page - 1) + " -----");
+
+        // legacy defaults different from pdf defaults
+        //_pageWriter.setLineCap(1); _pageWriter.setLineJoin(1);
+
+        // Flip coords to match java2d model
+        _pageWriter.append("1 0 0 -1 0 ").append(aRect.getHeight()).appendln(" cm");
     }
 
     /**

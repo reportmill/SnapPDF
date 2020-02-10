@@ -32,7 +32,7 @@ public class PDGraphics2D extends Graphics2D {
      */
     public PDGraphics2D()
     {
-        _painter = new PDPainter();
+        _painter = new PDPainter(612, 792);
         _gstack = new Stack<>();
         _gstack.add(this);
     }
