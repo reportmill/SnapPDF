@@ -19,6 +19,9 @@ public class PDFWriter extends PDFWriterBase {
     
     // The PDFFile
     protected PDFFile           _pfile;
+
+    // The file default page size
+    protected Size              _pageSize = new Size(612, 792);
     
     // The XRefTable
     protected PDFXTable         _xtable;
@@ -67,6 +70,30 @@ public class PDFWriter extends PDFWriterBase {
     
     // The default viewer preferences map
     static Map <String,String>  _viewerPreferencesDefault = Collections.singletonMap("PrintScaling", "/None");
+
+    /**
+     * Returns the default page size.
+     */
+    public Size getPageSize()
+    {
+        return _pageSize;
+    }
+
+    /**
+     * Sets the default page size.
+     */
+    public void setPageSize(Size aSize)
+    {
+        _pageSize = aSize;
+    }
+
+    /**
+     * Sets the default page size.
+     */
+    public void setPageSize(double aW, double aH)
+    {
+        setPageSize(new Size(aW, aH));
+    }
 
     /**
      * Returns a PDF byte array for a given RMDocument.
@@ -129,20 +156,43 @@ public class PDFWriter extends PDFWriterBase {
         // Validate and resolve doc page references
         aDoc.setWidth(aDoc.getBestWidth(-1));
         aDoc.setHeight(aDoc.getBestHeight(-1));
-        ViewUtils.layoutDeep(aDoc); //aDoc.resolvePageReferences();
+        ViewUtils.layoutDeep(aDoc);
+
+        // Set default PageSize from doc
+        setPageSize(aDoc.getWidth(), aDoc.getHeight());
 
         // Iterate over doc pages
         //for(int i=0, iMax=aDoc.getPageCount(); i<iMax; i++) { PageView page = aDoc.getPage(i);
         if (aDoc.getPage() != null) {
+
+            // Get PageView
             PageView page = aDoc.getPage();
 
-            // Get pdf page, set media box and add to pages tree and xref
-            _pageWriter = new PDFPageWriter(_pfile, this);
-            _pageWriter.setMediaBox(page.getBoundsLocal());
+            // Add PDF Page
+            addPage(page.getBoundsLocal());
 
             // Have page pdfr write pdf
             SnapViewPdfr.getPdfr(page).writePDF(page, this);
         }
+    }
+
+    /**
+     * Adds a page (using document bounds).
+     */
+    protected void addPage()
+    {
+        Size size = getPageSize();
+        addPage( new Rect(0, 0, size.width, size.height));
+    }
+
+    /**
+     * Adds a page.
+     */
+    protected void addPage(Rect aRect)
+    {
+        // Get pdf page, set media box and add to pages tree and xref
+        _pageWriter = new PDFPageWriter(_pfile, this);
+        _pageWriter.setMediaBox(aRect);
     }
 
     /**

@@ -14,6 +14,7 @@ import java.awt.image.RenderedImage;
 import java.awt.image.renderable.RenderableImage;
 import java.text.AttributedCharacterIterator;
 import java.util.Map;
+import java.util.Stack;
 
 /**
  * A Graphics2D implementation to generate PDF from Swing apps (Uses PDPainter).
@@ -22,6 +23,28 @@ public class PDGraphics2D extends Graphics2D {
 
     // The PDPainter
     private PDPainter _painter;
+
+    // The stack of PDGraphics2D
+    private Stack<PDGraphics2D> _gstack;
+
+    /**
+     * Creates a PDGraphics2D.
+     */
+    public PDGraphics2D()
+    {
+        _painter = new PDPainter();
+        _gstack = new Stack<>();
+        _gstack.add(this);
+    }
+
+    /**
+     * Creates a PDGraphics2D with given painter.
+     */
+    protected PDGraphics2D(PDPainter aPntr, Stack<PDGraphics2D> gStack)
+    {
+        _painter = aPntr;
+        _gstack = gStack;
+    }
 
     @Override
     public Color getColor()
@@ -32,6 +55,7 @@ public class PDGraphics2D extends Graphics2D {
     @Override
     public void setColor(Color aColor)
     {
+        checkGStack();
         _painter.setColor(AWT.awtToSnapColor(aColor));
     }
 
@@ -44,6 +68,7 @@ public class PDGraphics2D extends Graphics2D {
     @Override
     public void setPaint(Paint aPaint)
     {
+        checkGStack();
         _painter.setPaint(AWT.awtToSnapPaint(aPaint));
     }
 
@@ -56,6 +81,7 @@ public class PDGraphics2D extends Graphics2D {
     @Override
     public void setStroke(Stroke aStroke)
     {
+        checkGStack();
         _painter.setStroke(AWT.awtToSnapStroke(aStroke));
     }
 
@@ -68,6 +94,7 @@ public class PDGraphics2D extends Graphics2D {
     @Override
     public void setFont(Font aFont)
     {
+        checkGStack();
         _painter.setFont(AWT.awtToSnapFont(aFont));
     }
 
@@ -86,84 +113,98 @@ public class PDGraphics2D extends Graphics2D {
     @Override
     public void transform(AffineTransform aTrans)
     {
+        checkGStack();
         _painter.transform(AWT.awtToSnapTrans(aTrans));
     }
 
     @Override
     public void setTransform(AffineTransform aTrans)
     {
+        checkGStack();
         _painter.setTransform(AWT.awtToSnapTrans(aTrans));
     }
 
     @Override
     public void translate(int x, int y)
     {
+        checkGStack();
         _painter.translate(x, y);
     }
 
     @Override
     public void translate(double tx, double ty)
     {
+        checkGStack();
         _painter.translate(tx, ty);
     }
 
     @Override
     public void rotate(double theta)
     {
+        checkGStack();
         _painter.rotate(theta);
     }
 
     @Override
     public void rotate(double theta, double x, double y)
     {
+        checkGStack();
         _painter.rotateAround(theta, x, y);
     }
 
     @Override
     public void scale(double sx, double sy)
     {
+        checkGStack();
         _painter.scale(sx, sy);
     }
 
     @Override
     public void shear(double shx, double shy)
     {
+        checkGStack();
         System.err.println("PDGraphics2D.shear: Not implemented");
     }
 
     @Override
     public Shape getClip()
     {
+        checkGStack();
         return AWT.snapToAwtShape(_painter.getClip());
     }
 
     @Override
     public Rectangle getClipBounds()
     {
+        checkGStack();
         return AWT.snapToAwtRect(_painter.getClipBounds()).getBounds();
     }
 
     @Override
     public void clip(Shape aShape)
     {
+        checkGStack();
         _painter.clip(AWT.awtToSnapShape(aShape));
     }
 
     @Override
     public void clipRect(int x, int y, int width, int height)
     {
+        checkGStack();
         _painter.clipRect(x, y, width, height);
     }
 
     @Override
     public void setClip(int x, int y, int width, int height)
     {
+        checkGStack();
         System.err.println("PDGraphics2D.setClip: Not implemented");
     }
 
     @Override
     public void setClip(Shape clip)
     {
+        checkGStack();
         System.err.println("PDGraphics2D.setClip: Not implemented");
     }
 
@@ -173,120 +214,152 @@ public class PDGraphics2D extends Graphics2D {
     @Override
     public void draw(Shape aShape)
     {
+        checkGStack();
         _painter.draw(AWT.awtToSnapShape(aShape));
     }
 
     @Override
     public void fill(Shape aShape)
     {
+        checkGStack();
         _painter.fill(AWT.awtToSnapShape(aShape));
     }
 
     @Override
     public void drawString(String str, int x, int y)
     {
+        checkGStack();
         _painter.drawString(str, x, y);
     }
 
     @Override
     public void drawString(String str, float x, float y)
     {
+        checkGStack();
         _painter.drawString(str, x, y);
     }
 
     @Override
     public void drawString(AttributedCharacterIterator iterator, int x, int y)
     {
+        checkGStack();
         drawString(iterator, (float)x, (float)y);
     }
 
     @Override
     public void drawString(AttributedCharacterIterator iterator, float x, float y)
     {
-        System.err.println("PDGraphics2D.drawString AttribChar: Not implemented");
+        checkGStack();
+        System.err.println("PDGraphics2D.drawString: Not implemented for AttributedCharacterIterator");
     }
 
     @Override
     public void drawGlyphVector(GlyphVector g, float x, float y)
     {
-
+        checkGStack();
+        System.err.println("PDGraphics2D.drawGlyphVector: Not implemented");
     }
 
     @Override
     public boolean drawImage(Image img, AffineTransform xform, ImageObserver obs)
     {
-        return false;
+        checkGStack();
+        _painter.drawImage(AWT.awtToSnapImage(img), AWT.awtToSnapTrans(xform));
+        return true;
     }
 
     @Override
     public void drawImage(BufferedImage img, BufferedImageOp op, int x, int y)
     {
-
+        checkGStack();
+        System.err.println("PDGraphics2D.drawImage: Not implemented for BufferedImageOp");
     }
 
     @Override
     public boolean drawImage(Image img, int x, int y, ImageObserver observer)
     {
-        return false;
+        checkGStack();
+        _painter.drawImage(AWT.awtToSnapImage(img), x, y);
+        return true;
     }
 
     @Override
     public boolean drawImage(Image img, int x, int y, int width, int height, ImageObserver observer)
     {
-        return false;
+        checkGStack();
+        _painter.drawImage(AWT.awtToSnapImage(img), x, y, width, height);
+        return true;
     }
 
     @Override
     public boolean drawImage(Image img, int x, int y, Color bgcolor, ImageObserver observer)
     {
-        return false;
+        checkGStack();
+        _painter.drawImage(AWT.awtToSnapImage(img), x, y);
+        System.err.println("PDGraphics2D.drawImage: Not implemented for background color");
+        return true;
     }
 
     @Override
     public boolean drawImage(Image img, int x, int y, int width, int height, Color bgcolor, ImageObserver observer)
     {
-        return false;
+        checkGStack();
+        _painter.drawImage(AWT.awtToSnapImage(img), x, y, width, height);
+        System.err.println("PDGraphics2D.drawImage: Not implemented for background color");
+        return true;
     }
 
     @Override
     public boolean drawImage(Image img, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2, ImageObserver observer)
     {
-        return false;
+        checkGStack();
+        double sw = sx2 - sx1, sh = sy2 - sy1;
+        double dw = dx2 - dx1, dh = dy2 - dy1;
+        _painter.drawImage(AWT.awtToSnapImage(img), sx1, sy1, sw, sh, dx1, dy1, dw, dh);
+        return true;
     }
 
     @Override
     public boolean drawImage(Image img, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2, Color bgcolor, ImageObserver observer)
     {
-        return false;
+        checkGStack();
+        double sw = sx2 - sx1, sh = sy2 - sy1;
+        double dw = dx2 - dx1, dh = dy2 - dy1;
+        _painter.drawImage(AWT.awtToSnapImage(img), sx1, sy1, sw, sh, dx1, dy1, dw, dh);
+        System.err.println("PDGraphics2D.drawImage: Not implemented for background color");
+        return true;
     }
 
     @Override
     public void drawRenderedImage(RenderedImage img, AffineTransform xform)
     {
-
+        System.err.println("PDGraphics2D.drawImage: Not implemented for RenderedImage");
     }
 
     @Override
     public void drawRenderableImage(RenderableImage img, AffineTransform xform)
     {
-
+        System.err.println("PDGraphics2D.drawImage: Not implemented for RenderedImage");
     }
 
     @Override
     public void drawLine(int x1, int y1, int x2, int y2)
     {
+        checkGStack();
         _painter.drawLine(x1, y1, x2, y2);
     }
 
     @Override
     public void fillRect(int x, int y, int width, int height)
     {
+        checkGStack();
         _painter.fillRect(x, y, width, height);
     }
 
     @Override
     public void clearRect(int x, int y, int width, int height)
     {
+        checkGStack();
         _painter.clearRect(x, y, width, height);
     }
 
@@ -360,7 +433,10 @@ public class PDGraphics2D extends Graphics2D {
     }
 
     @Override
-    public void setComposite(Composite comp)  { }
+    public void setComposite(Composite comp)
+    {
+        System.err.println("PDGraphics2D.setComposite: Not implemented");
+    }
 
     @Override
     public Color getBackground()
@@ -404,19 +480,26 @@ public class PDGraphics2D extends Graphics2D {
     @Override
     public Graphics create()
     {
-        return null;
+        checkGStack();
+        PDGraphics2D clone = new PDGraphics2D(_painter, _gstack);
+        _painter.save();
+        _gstack.add(this);
+        return clone;
     }
 
     @Override
     public void setPaintMode()  { }
 
     @Override
-    public void setXORMode(Color c1)  { }
+    public void setXORMode(Color c1)
+    {
+        System.err.println("PDGraphics2D.setXORMode: Not implemented");
+    }
 
     @Override
-    public boolean hit(Rectangle rect, Shape s, boolean onStroke)
+    public boolean hit(Rectangle aRect, Shape aShape, boolean onStroke)
     {
-        return false;
+        return aShape.intersects(aRect);
     }
 
     @Override
@@ -432,5 +515,24 @@ public class PDGraphics2D extends Graphics2D {
     }
 
     @Override
-    public void dispose()  { }
+    public void dispose()
+    {
+        if (_gstack.peek()==this)
+        {
+            _gstack.pop();
+            _painter.restore();
+        }
+    }
+
+    /**
+     * Make sure that current graphics is the one doing the painting.
+     */
+    protected void checkGStack()
+    {
+        while (_gstack.peek()!=this)
+        {
+            _gstack.pop();
+            _painter.restore();
+        }
+    }
 }

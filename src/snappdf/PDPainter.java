@@ -2,6 +2,7 @@ package snappdf;
 import snap.gfx.*;
 import snappdf.write.PDFFontEntry;
 import snappdf.write.PDFPageWriter;
+import snappdf.write.SnapPaintPdfr;
 
 /**
  * A painter that writes all drawing to PDF.
@@ -10,6 +11,34 @@ public class PDPainter extends PainterImpl {
 
     // The PDF writer
     private PDFWriter _writer;
+
+    /**
+     * Creates PDPainter for page size.
+     */
+    public PDPainter(double aW, double aH)
+    {
+        _writer = new PDFWriter();
+        _writer.initWriter();
+        _writer.setPageSize(aW, aH);
+        _writer.addPage();
+    }
+
+    /**
+     * Returns the writer.
+     */
+    public PDFWriter getWriter()
+    {
+        return _writer;
+    }
+
+    /**
+     * Returns a PDF byte array for a given RMDocument.
+     */
+    public byte[] getBytesPDF()
+    {
+        _writer.finishWriter();
+        return _writer.getBytes();
+    }
 
     /** Sets the current font. */
     public void setFont(Font aFont)
@@ -32,19 +61,6 @@ public class PDPainter extends PainterImpl {
     {
         // Do normal version
         super.setPaint(aPaint);
-
-        // Handle GradientPaint
-        //if(aPaint instanceof GradientPaint) writeGradientFill(aView, (GradientPaint)aFill, aWriter); else
-
-        // Handle ImagePaint fill
-        //if(aPaint instanceof ImagePaint)
-        //    SnapPaintPdfr.writeImagePaint(aWriter, (ImagePaint)fill, aView.getBoundsShape(), aView.getBoundsLocal());
-
-        // Handle color fill
-        if(aPaint instanceof Color) { Color color = (Color)aPaint;
-            PDFPageWriter pdfPage = _writer.getPageWriter();
-            pdfPage.setFillColor(color);
-        }
     }
 
     /** Sets the current stroke. */
@@ -52,7 +68,6 @@ public class PDPainter extends PainterImpl {
     {
         // Do normal version
         super.setStroke(aStroke);
-
     }
 
     /** Sets the opacity. */
@@ -72,10 +87,10 @@ public class PDPainter extends PainterImpl {
         // Do normal version
         super.draw(aShape);
 
-        // Get PDF page, write path and stroke operator
-        PDFPageWriter pdfPage = _writer.getPageWriter();
-        pdfPage.writePath(aShape);
-        pdfPage.appendln("S");
+        // Get current paint and fill shape
+        Paint paint = getPaint();
+        Stroke stroke = getStroke();
+        SnapPaintPdfr.writeDrawShapeWithPaintAndStroke(_writer, aShape, paint, stroke);
     }
 
     /** Fill the given shape. */
@@ -84,10 +99,9 @@ public class PDPainter extends PainterImpl {
         // Do normal version
         super.fill(aShape);
 
-        // Get PDF page, write path and fill operator
-        PDFPageWriter pdfPage = _writer.getPageWriter();
-        pdfPage.writePath(aShape);
-        pdfPage.append('f');
+        // Get current paint and fill shape
+        Paint paint = getPaint();
+        SnapPaintPdfr.writeFillShapeWithPaint(_writer, aShape, paint);
     }
 
     /** Draw image with transform. */

@@ -126,8 +126,9 @@ protected void writeViewStroke(View aView, PDFWriter aWriter)
 {
     Shape shape = aView.getBoundsShape();
     Border border = aView.getBorder();
-    Color strokeColor = border.getColor(); double strokeWidth = border.getWidth();
-    SnapPaintPdfr.writeShapeStroke(shape, Stroke.getStroke(strokeWidth), strokeColor, aWriter);
+    Color strokeColor = border.getColor();
+    double strokeWidth = border.getWidth();
+    SnapPaintPdfr.writeDrawShapeWithPaintAndStroke(aWriter, shape, strokeColor, Stroke.getStroke(strokeWidth));
 }
 
 /**
@@ -135,20 +136,9 @@ protected void writeViewStroke(View aView, PDFWriter aWriter)
  */
 protected void writeViewFill(View aView, PDFWriter aWriter)
 {
-    Paint fill = aView.getFill();
-    
-    // Handle GradientPaint fill
-    //if(aFill instanceof GradientPaint) writeGradientFill(aView, (GradientPaint)aFill, aWriter); else
-    
-    // Handle ImagePaint fill
-    if(fill instanceof ImagePaint)
-        SnapPaintPdfr.writeImagePaint(aWriter, (ImagePaint)fill, aView.getBoundsShape(), aView.getBoundsLocal());
-    
-    // Handle color fill
-    else if(fill instanceof Color) {
-        Shape shape = aView.getBoundsShape();
-        SnapPaintPdfr.writeShapeFill(shape, (Color)fill, aWriter);
-    }
+    Paint paint = aView.getFill();
+    Shape shape = aView.getBoundsShape();
+    SnapPaintPdfr.writeFillShapeWithPaint(aWriter, shape, paint);
 }
 
 /**
