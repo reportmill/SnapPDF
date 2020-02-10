@@ -61,6 +61,15 @@ public class PDPainter extends PainterImpl {
     {
         // Do normal version
         super.setPaint(aPaint);
+
+        // Write paint
+        PDFPageWriter pdfPage = _writer.getPageWriter();
+        if (aPaint instanceof Color) {
+            Color color = (Color)aPaint;
+            pdfPage.setFillColor(color);
+        }
+
+        else System.err.println("PDPainter.setPaint: Paint type not implemented " + aPaint.getClass().getSimpleName());
     }
 
     /** Sets the current stroke. */
@@ -138,7 +147,7 @@ public class PDPainter extends PainterImpl {
 
         // Get dest bounds
         Rect dstBnds = new Rect(dx, dy, dw, dh);
-        pwriter.writeImage(img, dstBnds, null);
+        pwriter.writeDrawImage(img, dstBnds, null);
     }
 
     /** Draw string at location with char spacing. */
@@ -147,6 +156,9 @@ public class PDPainter extends PainterImpl {
         // Do normal version
         super.drawString(aStr, aX, aY, cs);
 
+        // DrawString
+        PDFPageWriter pwriter = _writer.getPageWriter();
+        pwriter.writeDrawString(aStr, aX, aY);
     }
 
     /**
@@ -185,6 +197,9 @@ public class PDPainter extends PainterImpl {
         // Do normal version
         super.clip(aShape);
 
+        // Write clip
+        PDFPageWriter pdfPage = _writer.getPageWriter();
+        pdfPage.writeClip(aShape);
     }
 
     /**

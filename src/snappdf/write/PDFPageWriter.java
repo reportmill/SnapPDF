@@ -185,19 +185,93 @@ public void setLineJoin(int aLineJoin)
     _gstack.setLineJoin(aLineJoin);
     append(aLineJoin).appendln(" j");
 }
-    
+
 /**
- * Writes an image in given bounds.
+ * Sets the given font to be current font.
  */
-public void writeImage(Image anImage, double aX, double aY)
+public void setFont(Font aFont)
 {
-    writeImage(anImage, aX, aY, anImage.getWidth(), anImage.getHeight());
+    PDFFontEntry fontEntry = _writer.getFontEntry(aFont, 0);
+    append('/');
+    append(fontEntry.getPDFName()); append(' ');
+    append(aFont.getSize());
+    appendln(" Tf");
+}
+
+/**
+ * Sets the char spacing.
+ */
+public void setCharSpacing(double aSpacing)
+{
+    append(aSpacing);
+    appendln(" Tc");
+}
+
+/**
+ * Write image.
+ */
+public void writeClip(Shape aShape)
+{
+    writePath(aShape);
+    appendln("W n");
+}
+
+/**
+ * Writes a draw string.
+ */
+public void writeDrawString(String aStr, double aX, double aY)
+{
+    // Apply CTM - image coords are flipped from page coords ( (0,0) at upper-left )
+    gsave();
+    writeTransform(1, 0, 0, -1, aX, aY);
+
+    // Output PDF begin text operator
+    appendln("BT");
+
+    // Write start char
+    append('(');
+
+    // Iterate over run chars
+    int len = aStr.length();
+    for(int i=0; i<len; i++) { char c = aStr.charAt(i);
+
+        // If char is more than 256, complain
+        if(c>=256)
+            System.err.println("PDFPageWriter.writeDrawString: Extended chars not supported yet");
+
+        // Handle special chars for PDF string (might need to do backspace (\b) and form-feed (\f), too)
+        if(c=='\t') { if(_writer.getIncludeNewlines()) append("\\t"); continue; }
+        if(c=='\n') { if(_writer.getIncludeNewlines()) append("\\n"); continue; }
+        if(c=='\r') { if(_writer.getIncludeNewlines()) append("\\r"); continue; }
+        if(c=='(' || c==')' || c=='\\')
+            append('\\');
+
+        // Write the char
+        append(c);
+    }
+
+    // Write end chars
+    appendln(") Tj");
+
+    // End Text
+    appendln("ET");
+
+    // Restore gstate
+    grestore();
 }
 
 /**
  * Writes an image in given bounds.
  */
-public void writeImage(Image anImage, double x, double y, double width, double height)
+public void writeImage(Image anImage, double aX, double aY)
+{
+    writeDrawImage(anImage, aX, aY, anImage.getWidth(), anImage.getHeight());
+}
+
+/**
+ * Writes an image in given bounds.
+ */
+public void writeDrawImage(Image anImage, double x, double y, double width, double height)
 {
     // Get image and image bounds (just return if missing or invalid)
     if(anImage==null) return;
@@ -207,10 +281,6 @@ public void writeImage(Image anImage, double x, double y, double width, double h
 
     // Gsave
     gsave();
-    
-    // Apply clip if needed
-    /*if(anImageView.getRadius()>.001) {
-        Shape path = anImageView.getPath(); pwriter.writePath(path); pwriter.append("W n "); }*/
     
     // Apply CTM - image coords are flipped from page coords ( (0,0) at upper-left )
     writeTransform(width, 0, 0, -height, x, y + height);
@@ -225,30 +295,27 @@ public void writeImage(Image anImage, double x, double y, double width, double h
 /**
  * Write image.
  */
-public void writeImage(Image anImage, Rect destBounds, Shape aClipShape)
+public void writeDrawImage(Image anImage, Rect destBounds, Shape aClipShape)
 {
     // Get image data (just return if missing) and image name and add image
     String iname = _writer.getImageName(anImage);
     _writer.addImage(anImage);
 
     // Get PDF page and gsave
-    PDFPageWriter pdfPage = _writer.getPageWriter();
-    pdfPage.gsave();
+    gsave();
 
     // Apply clip if provided
-    if(aClipShape!=null) {
-        pdfPage.writePath(aClipShape);
-        pdfPage.append("W n ");
-    }
+    if(aClipShape!=null)
+        writeClip(aClipShape);
 
     // Apply CTM - image coords are flipped from page coords ( (0,0) at upper-left )
     double width = destBounds.getWidth();
     double height = destBounds.getHeight();
-    pdfPage.writeTransform(width, 0, 0, -height, destBounds.x, destBounds.getMaxY());
+    writeTransform(width, 0, 0, -height, destBounds.x, destBounds.getMaxY());
 
     // Do image and grestore
-    pdfPage.appendln("/" + iname + " Do");
-    pdfPage.grestore();
+    appendln("/" + iname + " Do");
+    grestore();
 }
 
 /**

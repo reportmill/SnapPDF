@@ -50,7 +50,7 @@ public static class SnapImageViewPdfr <T extends ImageView> extends SnapViewPdfr
         /*if(anImageView.getRadius()>.001) {
             Shape path = anImageView.getPath(); pwriter.writePath(path); pwriter.append("W n "); }*/
             
-        pwriter.writeImage(image, bnds.x, bnds.y, bnds.width, bnds.height);
+        pwriter.writeDrawImage(image, bnds.x, bnds.y, bnds.width, bnds.height);
     }
 }
 
