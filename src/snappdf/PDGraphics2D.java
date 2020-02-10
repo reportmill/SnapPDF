@@ -4,6 +4,9 @@ import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Arc2D;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.awt.image.ImageObserver;
@@ -174,33 +177,33 @@ public class PDGraphics2D extends Graphics2D {
     }
 
     @Override
-    public void fill(Shape s)
+    public void fill(Shape aShape)
     {
-
+        _painter.fill(AWT.awtToSnapShape(aShape));
     }
 
     @Override
     public void drawString(String str, int x, int y)
     {
-
+        _painter.drawString(str, x, y);
     }
 
     @Override
     public void drawString(String str, float x, float y)
     {
-
+        _painter.drawString(str, x, y);
     }
 
     @Override
     public void drawString(AttributedCharacterIterator iterator, int x, int y)
     {
-
+        drawString(iterator, (float)x, (float)y);
     }
 
     @Override
     public void drawString(AttributedCharacterIterator iterator, float x, float y)
     {
-
+        System.err.println("PDGraphics2D.drawString AttribChar: Not implemented");
     }
 
     @Override
@@ -272,73 +275,82 @@ public class PDGraphics2D extends Graphics2D {
     @Override
     public void drawLine(int x1, int y1, int x2, int y2)
     {
-
+        _painter.drawLine(x1, y1, x2, y2);
     }
 
     @Override
     public void fillRect(int x, int y, int width, int height)
     {
-
+        _painter.fillRect(x, y, width, height);
     }
 
     @Override
     public void clearRect(int x, int y, int width, int height)
     {
-
+        _painter.clearRect(x, y, width, height);
     }
 
     @Override
     public void drawRoundRect(int x, int y, int width, int height, int arcWidth, int arcHeight)
     {
-
+        RoundRectangle2D rect = new RoundRectangle2D.Float(x, y, width, height, arcWidth, arcHeight);
+        draw(rect);
     }
 
     @Override
     public void fillRoundRect(int x, int y, int width, int height, int arcWidth, int arcHeight)
     {
-
+        RoundRectangle2D rect = new RoundRectangle2D.Float(x, y, width, height, arcWidth, arcHeight);
+        fill(rect);
     }
 
     @Override
     public void drawOval(int x, int y, int width, int height)
     {
-
+        Ellipse2D oval = new Ellipse2D.Double(x, y, width, height);
+        draw(oval);
     }
 
     @Override
     public void fillOval(int x, int y, int width, int height)
     {
-
+        Ellipse2D oval = new Ellipse2D.Double(x, y, width, height);
+        fill(oval);
     }
 
     @Override
     public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle)
     {
-
+        Arc2D arc = new Arc2D.Double(x, y, width, height, startAngle, arcAngle, Arc2D.OPEN);
+        draw(arc);
     }
 
     @Override
     public void fillArc(int x, int y, int width, int height, int startAngle, int arcAngle)
     {
-
+        Arc2D arc = new Arc2D.Double(x, y, width, height, startAngle, arcAngle, Arc2D.OPEN);
+        fill(arc);
     }
 
     @Override
     public void drawPolyline(int[] xPoints, int[] yPoints, int nPoints)
     {
-
+        Polygon poly = new Polygon(xPoints, yPoints, nPoints);
+        draw(poly);
     }
 
     @Override
     public void drawPolygon(int[] xPoints, int[] yPoints, int nPoints)
     {
-
+        Polygon poly = new Polygon(xPoints, yPoints, nPoints);
+        draw(poly);
     }
 
     @Override
     public void fillPolygon(int[] xPoints, int[] yPoints, int nPoints)
     {
-
+        Polygon poly = new Polygon(xPoints, yPoints, nPoints);
+        fill(poly);
     }
 
     @Override
