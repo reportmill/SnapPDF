@@ -14,6 +14,10 @@ import java.awt.image.BufferedImageOp;
 import java.awt.image.ImageObserver;
 import java.awt.image.RenderedImage;
 import java.awt.image.renderable.RenderableImage;
+import java.awt.print.PageFormat;
+import java.awt.print.Pageable;
+import java.awt.print.Printable;
+import java.awt.print.PrinterException;
 import java.text.AttributedCharacterIterator;
 import java.util.Map;
 import java.util.Stack;
@@ -487,23 +491,23 @@ public class PDGraphics2D extends Graphics2D {
     @Override
     public Object getRenderingHint(RenderingHints.Key hintKey)
     {
-        return null;
+        return _g2d.getRenderingHint(hintKey);
     }
 
     @Override
     public void setRenderingHint(RenderingHints.Key hintKey, Object hintValue)
     {
-
+        _g2d.setRenderingHint(hintKey, hintValue);
     }
 
     @Override
-    public RenderingHints getRenderingHints()  { return null; }
+    public RenderingHints getRenderingHints()  { return _g2d.getRenderingHints(); }
 
     @Override
-    public void setRenderingHints(Map<?, ?> hints)  { }
+    public void setRenderingHints(Map<?, ?> hints)  { _g2d.setRenderingHints(hints);}
 
     @Override
-    public void addRenderingHints(Map<?, ?> hints)  {  }
+    public void addRenderingHints(Map<?, ?> hints)  { _g2d.addRenderingHints(hints); }
 
     @Override
     public Graphics create()
@@ -533,7 +537,7 @@ public class PDGraphics2D extends Graphics2D {
     @Override
     public GraphicsConfiguration getDeviceConfiguration()
     {
-        return null;
+        return _g2d.getDeviceConfiguration();
     }
 
     @Override
@@ -562,5 +566,42 @@ public class PDGraphics2D extends Graphics2D {
             _gstack.pop();
             _painter.restore();
         }
+    }
+
+    /**
+     * Generate PDF for Pageable.
+     */
+    public static byte[] getPDFForPageable(Pageable aPageable)
+    {
+        // Get PageCount and first PageFormat
+        int pageCount = aPageable.getNumberOfPages();
+        PageFormat pageFmt0 = aPageable.getPageFormat(0);
+
+        // Create new PDGraphics2D
+        int width = (int) pageFmt0.getWidth();
+        int height = (int) pageFmt0.getHeight();
+        PDGraphics2D gfx = new PDGraphics2D(width, height);
+
+        // Iterate over pages and paint to Graphics
+        for (int i=0; i<pageCount; i++)
+        {
+            // If successive page, add page to writer
+            if (i>0) gfx._painter.getWriter().addPage();
+
+            // Get Printable and PageFormat for page and paint to Graphics
+            Printable printable = aPageable.getPrintable(i);
+            PageFormat pageFmt = aPageable.getPageFormat(i);
+            try
+            {
+                printable.print(gfx, pageFmt, i);
+            }
+            catch (PrinterException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
+
+        // Return PDF bytes
+        return gfx.getBytesPDF();
     }
 }
