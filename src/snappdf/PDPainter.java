@@ -21,6 +21,9 @@ public class PDPainter extends PainterImpl {
         _writer.initWriter();
         _writer.setPageSize(aW, aH);
         _writer.addPage();
+
+        // Clip to given doc
+        super.clipRect(0, 0, aW, aH);
     }
 
     /**
@@ -47,13 +50,8 @@ public class PDPainter extends PainterImpl {
         super.setFont(aFont);
 
         // Write set font
-        PDFFontEntry fontEntry = _writer.getFontEntry(aFont, 0);
         PDFPageWriter pdfPage = _writer.getPageWriter();
-        pdfPage.append('/');
-        pdfPage.append(fontEntry.getPDFName());
-        pdfPage.append(' ');
-        pdfPage.append(aFont.getSize());
-        pdfPage.appendln(" Tf");
+        pdfPage.setFont(aFont);
     }
 
     /** Sets the current paint. */
@@ -67,6 +65,7 @@ public class PDPainter extends PainterImpl {
         if (aPaint instanceof Color) {
             Color color = (Color)aPaint;
             pdfPage.setFillColor(color);
+            pdfPage.setStrokeColor(color);
         }
 
         else System.err.println("PDPainter.setPaint: Paint type not implemented " + aPaint.getClass().getSimpleName());
@@ -77,6 +76,10 @@ public class PDPainter extends PainterImpl {
     {
         // Do normal version
         super.setStroke(aStroke);
+
+        // Set stroke
+        PDFPageWriter pdfPage = _writer.getPageWriter();
+        pdfPage.setStrokeWidth(aStroke.getWidth());
     }
 
     /** Sets the opacity. */

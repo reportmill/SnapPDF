@@ -1,5 +1,7 @@
 package snappdf;
 import snap.swing.AWT;
+import snap.swing.AWTImageUtils;
+
 import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
@@ -27,14 +29,19 @@ public class PDGraphics2D extends Graphics2D {
     // The stack of PDGraphics2D
     private Stack<PDGraphics2D> _gstack;
 
+    // A shared graphics object
+    private Graphics2D _g2d;
+
     /**
      * Creates a PDGraphics2D.
      */
-    public PDGraphics2D()
+    public PDGraphics2D(int aW, int aH)
     {
-        _painter = new PDPainter(612, 792);
+        _painter = new PDPainter(aW, aH);
         _gstack = new Stack<>();
         _gstack.add(this);
+
+        _g2d = AWTImageUtils.getBufferedImage(5, 5, true).createGraphics();
     }
 
     /**
@@ -44,6 +51,14 @@ public class PDGraphics2D extends Graphics2D {
     {
         _painter = aPntr;
         _gstack = gStack;
+    }
+
+    /**
+     * Returns a PDF byte array for a given RMDocument.
+     */
+    public byte[] getBytesPDF()
+    {
+        return _painter.getBytesPDF();
     }
 
     @Override
@@ -96,12 +111,13 @@ public class PDGraphics2D extends Graphics2D {
     {
         checkGStack();
         _painter.setFont(AWT.awtToSnapFont(aFont));
+        _g2d.setFont(aFont);
     }
 
     @Override
     public FontMetrics getFontMetrics(Font aFont)
     {
-        return null;
+        return _g2d.getFontMetrics(aFont);
     }
 
     @Override
@@ -254,10 +270,26 @@ public class PDGraphics2D extends Graphics2D {
     }
 
     @Override
-    public void drawGlyphVector(GlyphVector g, float x, float y)
+    public void drawGlyphVector(GlyphVector g, float aX, float aY)
     {
         checkGStack();
-        System.err.println("PDGraphics2D.drawGlyphVector: Not implemented");
+
+        // Save gstate
+        _painter.save();
+
+        // Iterate over glyphs and fill
+        double x = aX, y = aY;
+        for (int i=0; i<g.getNumGlyphs(); i++)
+        {
+            Shape glyph = g.getGlyphOutline(i);
+            translate(x, y);
+            x = g.getGlyphMetrics(i).getAdvanceX();
+            y = g.getGlyphMetrics(i).getAdvanceY();
+            fill(glyph);
+        }
+
+        // Restore gstate
+        _painter.restore();
     }
 
     @Override
@@ -483,7 +515,7 @@ public class PDGraphics2D extends Graphics2D {
         checkGStack();
         PDGraphics2D clone = new PDGraphics2D(_painter, _gstack);
         _painter.save();
-        _gstack.add(this);
+        _gstack.add(clone);
         return clone;
     }
 
@@ -511,7 +543,7 @@ public class PDGraphics2D extends Graphics2D {
     @Override
     public FontRenderContext getFontRenderContext()
     {
-        return null;
+        return _g2d.getFontRenderContext();
     }
 
     @Override
