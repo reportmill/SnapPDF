@@ -158,14 +158,14 @@ public class PDGraphics2D extends Graphics2D {
     public void rotate(double theta)
     {
         checkGStack();
-        _painter.rotate(theta);
+        _painter.rotate(Math.toDegrees(theta));
     }
 
     @Override
-    public void rotate(double theta, double x, double y)
+    public void rotate(double theta, double aX, double aY)
     {
         checkGStack();
-        _painter.rotateAround(theta, x, y);
+        _painter.rotateAround(Math.toDegrees(theta), aX, aY);
     }
 
     @Override
@@ -270,26 +270,22 @@ public class PDGraphics2D extends Graphics2D {
     }
 
     @Override
-    public void drawGlyphVector(GlyphVector g, float aX, float aY)
+    public void drawGlyphVector(GlyphVector aGV, float aX, float aY)
     {
         checkGStack();
 
-        // Save gstate
-        _painter.save();
+        // Translate to location
+        _painter.translate(aX, aY);
 
         // Iterate over glyphs and fill
-        double x = aX, y = aY;
-        for (int i=0; i<g.getNumGlyphs(); i++)
+        for (int i=0, iMax=aGV.getNumGlyphs(); i<iMax; i++)
         {
-            Shape glyph = g.getGlyphOutline(i);
-            translate(x, y);
-            x = g.getGlyphMetrics(i).getAdvanceX();
-            y = g.getGlyphMetrics(i).getAdvanceY();
+            Shape glyph = aGV.getGlyphOutline(i);
             fill(glyph);
         }
 
-        // Restore gstate
-        _painter.restore();
+        // Translate back
+        _painter.translate(-aX, -aY);
     }
 
     @Override
