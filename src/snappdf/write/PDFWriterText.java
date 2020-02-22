@@ -1,6 +1,9 @@
 package snappdf.write;
-import java.util.*;
 import snap.gfx.*;
+import snap.text.TextBox;
+import snap.text.TextBoxLine;
+import snap.text.TextBoxRun;
+import snap.text.TextStyle;
 import snappdf.PDFWriter;
 import snap.util.SnapUtils;
 

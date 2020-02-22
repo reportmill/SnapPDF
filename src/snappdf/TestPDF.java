@@ -1,5 +1,6 @@
 package snappdf;
 import snap.gfx.*;
+import snap.text.TextStyle;
 import snap.util.SnapUtils;
 import snap.view.*;
 
