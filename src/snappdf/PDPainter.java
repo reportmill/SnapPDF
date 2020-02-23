@@ -1,4 +1,7 @@
 package snappdf;
+import snap.geom.Rect;
+import snap.geom.Shape;
+import snap.geom.Transform;
 import snap.gfx.*;
 import snappdf.write.PDFFontEntry;
 import snappdf.write.PDFPageWriter;

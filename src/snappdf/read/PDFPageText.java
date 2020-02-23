@@ -9,7 +9,7 @@ import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.util.*;
 import snap.gfx.Painter;
-import snap.gfx.Transform;
+import snap.geom.Transform;
 import snappdf.*;
 
 /**

@@ -5,6 +5,11 @@ package snappdf.read;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.util.*;
+
+import snap.geom.Path;
+import snap.geom.Point;
+import snap.geom.Rect;
+import snap.geom.Transform;
 import snap.gfx.*;
 import snap.gfx.Image;
 import snappdf.*;
@@ -45,7 +50,7 @@ public class PDFPagePainter {
     int                  _index;
     
     // Current path
-    Path                 _path = null;
+    Path _path = null;
     
     // Whether to clip after next draw op
     boolean              _doClip;
@@ -81,7 +86,7 @@ public Painter getPainter()  { return _pntr; }
 /**
  * Paints the page inside the given rect.
  */
-public void paint(Painter aPntr, Object aSource, Rect theDestBnds, Transform aTrans) 
+public void paint(Painter aPntr, Object aSource, Rect theDestBnds, Transform aTrans)
 {
     // Set painter and save painter state
     _pntr = aPntr; aPntr.save();

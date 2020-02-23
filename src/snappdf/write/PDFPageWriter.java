@@ -3,6 +3,9 @@
  */
 package snappdf.write;
 import java.util.*;
+
+import snap.geom.Rect;
+import snap.geom.Shape;
 import snap.gfx.*;
 import snappdf.*;
 import snap.util.*;
@@ -22,7 +25,7 @@ public class PDFPageWriter extends PDFWriterBase {
     PDFWriter             _writer;
     
     // The pdf media box for this page
-    Rect                  _mediaBox;
+    Rect _mediaBox;
     
     // The pdf crop box for this page
     Rect                  _cropBox;

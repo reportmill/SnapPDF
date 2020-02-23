@@ -2,6 +2,9 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package snappdf.write;
+import snap.geom.PathIter;
+import snap.geom.Rect;
+import snap.geom.Shape;
 import snap.gfx.*;
 import snappdf.*;
 import snap.util.ArrayUtils;

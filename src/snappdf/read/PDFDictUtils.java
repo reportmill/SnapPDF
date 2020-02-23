@@ -4,8 +4,8 @@
 package snappdf.read;
 import java.util.List;
 import java.util.Map;
-import snap.gfx.Rect;
-import snap.gfx.Transform;
+import snap.geom.Rect;
+import snap.geom.Transform;
 import snappdf.PDFException;
 import snappdf.PDFFile;
 

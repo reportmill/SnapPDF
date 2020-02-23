@@ -3,8 +3,8 @@
  */
 package snappdf.read;
 import java.util.*;
-import snap.gfx.Rect;
-import snap.gfx.Transform;
+import snap.geom.Rect;
+import snap.geom.Transform;
 import snappdf.*;
 
 /**

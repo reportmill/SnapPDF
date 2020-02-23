@@ -2,7 +2,7 @@
  * Copyright (c) 2010, ReportMill Software. All rights reserved.
  */
 package snappdf.write;
-import snap.gfx.Rect;
+import snap.geom.Rect;
 import java.util.*;
 import snappdf.PDFXTable;
 import snap.util.StringUtils;

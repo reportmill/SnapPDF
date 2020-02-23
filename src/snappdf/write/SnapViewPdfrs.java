@@ -1,4 +1,5 @@
 package snappdf.write;
+import snap.geom.Rect;
 import snap.gfx.*;
 import snappdf.*;
 import snap.view.*;

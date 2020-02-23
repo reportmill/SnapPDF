@@ -6,6 +6,9 @@ import java.io.ByteArrayOutputStream;
 import java.text.*;
 import java.util.*;
 import java.util.zip.DeflaterOutputStream;
+
+import snap.geom.Rect;
+import snap.geom.Size;
 import snap.gfx.*;
 import snap.view.*;
 import java.util.zip.Deflater;

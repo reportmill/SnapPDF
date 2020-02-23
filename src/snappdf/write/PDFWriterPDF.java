@@ -3,7 +3,8 @@
  */
 package snappdf.write;
 import java.util.*;
-import snap.gfx.*;
+
+import snap.geom.Rect;
 import snappdf.*;
 
 /**

@@ -3,6 +3,8 @@
  */
 package snappdf.read;
 import java.util.*;
+
+import snap.geom.Point;
 import snap.gfx.*;
 import snappdf.PDFException;
 
@@ -12,7 +14,7 @@ import snappdf.PDFException;
 public class PDFGState implements Cloneable {
     
     // The current point
-    Point          cp = new Point();
+    Point cp = new Point();
     
     // The current color
     Color          color = Color.BLACK;
