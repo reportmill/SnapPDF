@@ -13,10 +13,18 @@ java {
 }
 
 repositories {
+
+    // Jitpack makes builds from GitHub repos
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    compile project(':SnapKit')
+
+    // If Local SnapKit project, use that, otherwise use latest GitHub repo
+    if (findProject(':SnapKit') != null) { println 'Using local SnapKit project'
+        compile project(':SnapKit') }
+    else { println 'Using latest SnapKit GitHub repo'
+        implementation 'com.github.reportmill:SnapKit:master-SNAPSHOT'  }
 }
 
 mainClassName = 'snappdf.XRefView'
