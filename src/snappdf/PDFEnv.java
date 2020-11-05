@@ -66,6 +66,6 @@ public class PDFEnv {
     public static PDFEnv getEnv()
     {
         if (_shared!=null) return _shared;
-        return _shared = SnapUtils.isTeaVM ? new PDFEnv() : new SwingEnv();
+        return _shared = SnapUtils.isTeaVM ? new PDFEnv() : new PDFEnvSwing();
     }
 }

@@ -11,7 +11,7 @@ import java.util.*;
 /**
  * A PDFEnv subclass that uses Swing functionality for PDF things.
  */
-public class SwingEnv extends PDFEnv {
+public class PDFEnvSwing extends PDFEnv {
 
     /**
      * Generates and returns a unique file identifier.
@@ -69,7 +69,8 @@ public class SwingEnv extends PDFEnv {
         // Create PDF painter that renders into an image
         Image img = Image.get(width,height,false);
         Painter ipntr = img.getPainter();
-        ipntr.setColor(Color.WHITE); ipntr.fillRect(0,0,width,height);
+        ipntr.setColor(Color.WHITE);
+        ipntr.fillRect(0,0,width,height);
 
         // Create PDF painter that renders into an image
         PDFPagePainter ppntr = new PDFPagePainter(aPage);
@@ -101,6 +102,6 @@ public class SwingEnv extends PDFEnv {
      */
     public PDFCodec getEncryptor(Map encryptionDict, List<String> fileIds, double pdfversion)
     {
-        return snappdf.PDFSecurityHandler.getInstance(encryptionDict, fileIds, pdfversion);
+        return PDFSecurityHandler.getInstance(encryptionDict, fileIds, pdfversion);
     }
 }
