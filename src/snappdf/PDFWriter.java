@@ -26,9 +26,6 @@ public class PDFWriter extends PDFWriterBase {
     // The file default page size
     protected Size _pageSize = new Size(612, 792);
 
-    // The number of pages
-    private int _pageCount;
-    
     // The XRefTable
     protected PDFXTable _xtable;
 
@@ -45,7 +42,7 @@ public class PDFWriter extends PDFWriterBase {
     private Deflater _deflater = new Deflater(6, false);
 
     // Security handler for adding password protection
-    private PDFEncryptor _encryptor;
+    private PDFCodec  _encryptor;
     
     // Map of pdfread XRefs to pdfwrite XRefs
     public Map _readerWriterXRefMap = new HashMap();
@@ -168,7 +165,7 @@ public class PDFWriter extends PDFWriterBase {
         setPageSize(aDoc.getWidth(), aDoc.getHeight());
 
         // Iterate over doc pages
-        //for(int i=0, iMax=aDoc.getPageCount(); i<iMax; i++) { PageView page = aDoc.getPage(i);
+        //for (int i=0, iMax=aDoc.getPageCount(); i<iMax; i++) { PageView page = aDoc.getPage(i);
         if (aDoc.getPage() != null) {
 
             // Get PageView
@@ -262,17 +259,17 @@ public class PDFWriter extends PDFWriterBase {
 
         // If version string was bumped during generation, go back and update header
         String newVersion = _pfile.getVersionString();
-        if(!_versionStr.equals(newVersion)) {
+        if (!_versionStr.equals(newVersion)) {
 
             // pdf files are extremely sensitive to position, so make sure the headers are the same size
             int newLen = newVersion.length();
             int oldLen = _versionStr.length();
-            if(newLen > oldLen)
+            if (newLen > oldLen)
                 throw new RuntimeException("error trying to update pdf version number to " + newVersion);
 
             // Copy new version in (pad with spaces if new version is smaller)
-            for(int i=0; i<oldLen; i++)
-                pdfBytes[i+1] = (byte)(i<newLen? newVersion.charAt(i) : ' ');
+            for (int i=0; i<oldLen; i++)
+                pdfBytes[i+1] = (byte)(i<newLen ? newVersion.charAt(i) : ' ');
         }
 
         // Return pdf bytes
@@ -332,7 +329,7 @@ public class PDFWriter extends PDFWriterBase {
     /**
      * Returns the current PDF encryptor.
      */
-    public PDFEncryptor getEncryptor()  { return _encryptor; }
+    public PDFCodec getEncryptor()  { return _encryptor; }
 
     /**
      * Set the access permissions on the file such that the document can be opened by anyone, but the user cannot
@@ -358,10 +355,11 @@ public class PDFWriter extends PDFWriterBase {
     public void setAccessPermissions(String ownerPwd, String userPwd, int accessFlags)
     {
         // Create encryptor
-        _encryptor = new PDFEncryptor(_pfile.getFileID(), ownerPwd, userPwd, accessFlags);
+        _encryptor = PDFEnv.getEnv().newEncryptor(_pfile.getFileID(), ownerPwd, userPwd, accessFlags);
 
         // Add the encryption dictionary to the file.
-        _xtable.addObject(_encryptor.getEncryptionDict());
+        Map encryptDict = _encryptor.getEncryptionDict();
+        _xtable.addObject(encryptDict);
     }
 
     /**
@@ -398,14 +396,14 @@ public class PDFWriter extends PDFWriterBase {
     public PDFFontEntry getFontEntry(Font aFont, int fontCharSet)
     {
         // Get font entry name
-        String fontEntryName = fontCharSet==0? aFont.getName() : aFont.getName() + "." + fontCharSet;
+        String fontEntryName = fontCharSet==0 ? aFont.getName() : aFont.getName() + "." + fontCharSet;
 
         // Get FontEntry for base chars
         PDFFontEntry fontEntry = getFonts().get(fontEntryName);
 
         // If not present, create new font entry for font and add to fonts map
-        if(fontEntry==null) {
-            PDFFontEntry rootEntry = fontCharSet!=0? getFontEntry(aFont, 0) : null;
+        if (fontEntry==null) {
+            PDFFontEntry rootEntry = fontCharSet!=0 ? getFontEntry(aFont, 0) : null;
             fontEntry = new PDFFontEntry(aFont, fontCharSet, rootEntry);
             _xtable.addObject(fontEntry);
             _fonts.put(fontEntryName, fontEntry);
@@ -432,7 +430,7 @@ public class PDFWriter extends PDFWriterBase {
     {
         // If not present, unique, add to xref table and add to image refs
         String iname = getImageName(anImage);
-        if(!_imageRefs.containsKey(iname))
+        if (!_imageRefs.containsKey(iname))
             _imageRefs.put(iname, _xtable.addObject(getUniqueImage(anImage)));
     }
 
@@ -442,7 +440,7 @@ public class PDFWriter extends PDFWriterBase {
     public Image getUniqueImage(Image anImage)
     {
         int index = _imageDatas.indexOf(anImage);
-        if(index<0) _imageDatas.add(index = _imageDatas.size(), anImage);
+        if (index<0) _imageDatas.add(index = _imageDatas.size(), anImage);
         return _imageDatas.get(index);
     }
 
@@ -457,7 +455,7 @@ public class PDFWriter extends PDFWriterBase {
     public void addAcroFormField(PDFAnnotation.Widget aField)
     {
         // If first field, add Catalog.AcroForm dict, with AcroForm.Fields array, NeedAppearances and DR
-        if(_acroFormFields.size()==0) {
+        if (_acroFormFields.size()==0) {
             String acroFormXRef = _xtable.addObject(_acroFormDict);
             _pfile._catalogDict.put("AcroForm", acroFormXRef);
             _acroFormDict.put("Fields", _acroFormFields);
@@ -476,14 +474,14 @@ public class PDFWriter extends PDFWriterBase {
     public void writeXRefEntry(Object anObj)
     {
         // Handle strings
-        if(anObj instanceof String) { String string = (String)anObj;
+        if (anObj instanceof String) { String string = (String)anObj;
 
             // If not a PDF string, just append
-            if(!string.startsWith("("))
+            if (!string.startsWith("("))
                 append(string);
 
             // If encryption is enabled, all strings get encrypted
-            else if(getEncryptor()!= null) {
+            else if (getEncryptor()!= null) {
                 append('(');
                 append(getEncryptor().encryptString((String)anObj));
                 append(')');
@@ -494,26 +492,26 @@ public class PDFWriter extends PDFWriterBase {
         }
 
         // Handle numbers
-        else if(anObj instanceof Number)
+        else if (anObj instanceof Number)
             append(((Number)anObj).doubleValue());
 
         // Handle fonts map
-        else if(anObj==getFonts()) {
+        else if (anObj==getFonts()) {
             appendln("<<");
-            for(PDFFontEntry fontEntry : getFonts().values())
+            for (PDFFontEntry fontEntry : getFonts().values())
                 appendln("/" + fontEntry.getPDFName() + " " + _xtable.getRefString(fontEntry));
             appendln(">>");
         }
 
         // Handle Maps
-        else if(anObj instanceof Map) { Map <String,Object> map = (Map)anObj;
+        else if (anObj instanceof Map) { Map <String,Object> map = (Map)anObj;
 
             // Write dictionary contents surrounded by dictionary brackets
             appendln("<<");
-            for(String key : map.keySet()) {
+            for (String key : map.keySet()) {
 
                 // Skip entries that we put in for caching purposes
-                if(key.startsWith("_rbcached")) continue;
+                if (key.startsWith("_rbcached")) continue;
 
                 append('/').append(key).append(' ');
                 writeXRefEntry(map.get(key));
@@ -523,46 +521,46 @@ public class PDFWriter extends PDFWriterBase {
         }
 
         // Handle Lists
-        else if(anObj instanceof List) { List list = (List)anObj;
+        else if (anObj instanceof List) { List list = (List)anObj;
             append('[');
-            for(int i=0, iMax=list.size(); i<iMax; i++) {
-                if(i>0) append(' ');
+            for (int i=0, iMax=list.size(); i<iMax; i++) {
+                if (i>0) append(' ');
                 writeXRefEntry(list.get(i));
             }
             append(']');
         }
 
         // Handle PDFPage
-        else if(anObj instanceof PDFPageWriter)
+        else if (anObj instanceof PDFPageWriter)
             ((PDFPageWriter)anObj).writePDF(this);
 
         // Handle font entries
-        else if(anObj instanceof PDFFontEntry)
+        else if (anObj instanceof PDFFontEntry)
             PDFWriterFont.writeFontEntry(this, (PDFFontEntry)anObj);
 
         // Handle image data
-        else if(anObj instanceof Image)
+        else if (anObj instanceof Image)
             PDFWriterImage.writeImage(this, (Image)anObj);
 
         // Handle PDFPagesTree
-        else if(anObj instanceof PDFPageTree)
+        else if (anObj instanceof PDFPageTree)
             ((PDFPageTree)anObj).writePDF(this);
 
         // Handle PDFStream
-        else if(anObj instanceof PDFStream)
+        else if (anObj instanceof PDFStream)
             writeStream((PDFStream)anObj);
 
         // Handle PDFAnnotation
-        else if(anObj instanceof PDFAnnotation) { PDFAnnotation annotation = (PDFAnnotation)anObj;
+        else if (anObj instanceof PDFAnnotation) { PDFAnnotation annotation = (PDFAnnotation)anObj;
             writeXRefEntry(annotation.getAnnotationMap());
         }
 
         // Handle color
-        else if(anObj instanceof Color)
+        else if (anObj instanceof Color)
             append((Color)anObj);
 
         // Handle boolean
-        else if(anObj instanceof Boolean)
+        else if (anObj instanceof Boolean)
             append(anObj.toString());
 
         // Complain about anything else
@@ -579,14 +577,14 @@ public class PDFWriter extends PDFWriterBase {
 
         // First write the objects themselves, saving the file offsets for later use.
         // Call entries.size() every time in loop because objects are added as descriptions are generated.
-        for(int i=0; i<_xtable.getEntryCount(); i++) {
+        for (int i=0; i<_xtable.getEntryCount(); i++) {
 
             offsets.add(length());
             appendln((i+1) + " 0 obj");
             Object entry = _xtable.getEntry(i);
 
             // If encryption has been turned on, notify the encryptor of the top-level object we're about to write out.
-            if(getEncryptor() != null)
+            if (getEncryptor() != null)
                 getEncryptor().startEncrypt(i+1, 0);
 
             writeXRefEntry(entry);
@@ -606,7 +604,7 @@ public class PDFWriter extends PDFWriterBase {
         // The entries have to be 20 chars long each.
         DecimalFormat format = new DecimalFormat("0000000000");
         appendln("0000000000 65535 f ");
-        for(int i=0; i<count; i++)
+        for (int i=0; i<count; i++)
             appendln(format.format(offsets.get(i)) + " 00000 n ");
 
         // Return offset
@@ -624,18 +622,18 @@ public class PDFWriter extends PDFWriterBase {
 
         // Compress the data if it hasn't already been filtered
         Object filter = dict.get("Filter");
-        if(filter==null && length>64 && getCompress()) {
+        if (filter==null && length>64 && getCompress()) {
 
             // Get flate encoded bytes and swap them in if smaller
             byte bytes2[] = getBytesEncoded(bytes, 0, length);
-            if(bytes2.length<length) {
+            if (bytes2.length<length) {
                 bytes = bytes2; length = bytes2.length;
                 aStream.addFilter("/FlateDecode");
             }
         }
 
         // If encryption is enabled, encrypt the stream data
-        if(getEncryptor() != null)
+        if (getEncryptor() != null)
             bytes = getEncryptor().encryptBytes(bytes);
 
         // Now set the length key to represent the real length
