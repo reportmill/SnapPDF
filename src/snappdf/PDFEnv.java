@@ -2,6 +2,8 @@ package snappdf;
 import snap.geom.Rect;
 import snap.gfx.Image;
 import snap.gfx.Painter;
+import snap.util.SnapUtils;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -37,7 +39,7 @@ public class PDFEnv {
      */
     public void paint(PDFPage aPage, Painter aPntr, Rect aRect)
     {
-
+        System.err.println("PDFEnv.paint: Not implemented");
     }
 
     /**
@@ -64,6 +66,6 @@ public class PDFEnv {
     public static PDFEnv getEnv()
     {
         if (_shared!=null) return _shared;
-        return _shared = new PDFEnv();
+        return _shared = SnapUtils.isTeaVM ? new PDFEnv() : new SwingEnv();
     }
 }
