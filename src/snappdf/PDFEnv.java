@@ -65,7 +65,21 @@ public class PDFEnv {
      */
     public static PDFEnv getEnv()
     {
+        // If already set, just return
         if (_shared!=null) return _shared;
-        return _shared = SnapUtils.isTeaVM ? new PDFEnv() : new PDFEnvSwing();
+
+        // Use generic for TEAVM, otherwise Swing version
+        String cname = SnapUtils.getPlatform()==SnapUtils.Platform.TEAVM ? "snappdf.PDFEnv" : "snappdf.PDFEnvSwing";
+
+        // Try to get/set class name instance
+        try
+        {
+            return _shared = (PDFEnv) Class.forName(cname).newInstance();
+        }
+        catch(Exception e)
+        {
+            System.err.println("PDFEnv.getEnv: Can't set env: " + cname + ", " + e);
+            return _shared = new PDFEnv();
+        }
     }
 }
