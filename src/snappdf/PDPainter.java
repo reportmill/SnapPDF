@@ -3,7 +3,6 @@ import snap.geom.Rect;
 import snap.geom.Shape;
 import snap.geom.Transform;
 import snap.gfx.*;
-import snappdf.write.PDFFontEntry;
 import snappdf.write.PDFPageWriter;
 import snappdf.write.SnapPaintPdfr;
 
@@ -16,7 +15,15 @@ public class PDPainter extends PainterImpl {
     private PDFWriter _writer;
 
     /**
-     * Creates PDPainter for page size.
+     * Constructor for PDFWriter.
+     */
+    public PDPainter(PDFWriter aWriter)
+    {
+        _writer = aWriter;
+    }
+
+    /**
+     * Constructor for page size.
      */
     public PDPainter(double aW, double aH)
     {
