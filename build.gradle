@@ -22,7 +22,7 @@ dependencies {
 
     // If Local SnapKit project, use that, otherwise use latest GitHub repo
     if (findProject(':SnapKit') != null) { println 'Using local SnapKit project'
-        compile project(':SnapKit') }
+        implementation project(':SnapKit') }
     else { println 'Using latest SnapKit GitHub repo'
         implementation 'com.github.reportmill:SnapKit:master-SNAPSHOT'  }
 }
