@@ -503,7 +503,8 @@ public static class ShadingRadial extends Shading {
     // the input coords and the radii would probably be enough. however...
     public void doShadingWithTransform(int samples[], int x, int y, int w, int h)
     {
-        Point srcPt = new Point(), dstPt = new Point();
+        Point srcPt = new Point();
+        Point dstPt = new Point();
         int backsample = background!=null? getRGBAPixel(background) : 0;
         float t[] = new float[1];
         int sindex = 0;
@@ -513,7 +514,8 @@ public static class ShadingRadial extends Shading {
             srcPt.y = y0-(y+j);    //Yp
             srcPt.x = x0-x;       //Xp
             for(int i=0; i<w; ++i) {
-                _xform.transform(srcPt, dstPt);
+                dstPt.setPoint(srcPt);
+                _xform.transformPoint(dstPt);
                 double pC0 = dstPt.y*dstPt.y-r0*r0; //Yp
                 double pB0 = dstPt.y*dy-r0*dr; //Xp
                 double pB = 2*(dstPt.x*dx+pB0);
@@ -537,7 +539,8 @@ public static class ShadingRadial extends Shading {
                     samples[sindex] = getRGBAPixel(func.evaluate(t));
                 }
                 else samples[sindex] = backsample; //sample = background color
-                sindex++; srcPt.x--;
+                sindex++;
+                srcPt.x--;
             }
         }
     }
