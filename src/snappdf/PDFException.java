@@ -4,17 +4,28 @@
 package snappdf;
 
 /**
- * PDFException.java 
+ * PDFException.java
  * Subclass of Error because declaring every method
  * as throwing an exception seems stupid.
  */
 public class PDFException extends Error {
 
-    public PDFException() { }
-    
-    public PDFException(String message) { super(message); }
-    
-    public PDFException(String message, Throwable cause) { super(message, cause); }
-    
-    public PDFException(Throwable cause) { super(cause); }
+    public PDFException()
+    {
+    }
+
+    public PDFException(String message)
+    {
+        super(message);
+    }
+
+    public PDFException(String message, Throwable cause)
+    {
+        super(message, cause);
+    }
+
+    public PDFException(Throwable cause)
+    {
+        super(cause);
+    }
 }

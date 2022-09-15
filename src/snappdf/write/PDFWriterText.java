@@ -16,186 +16,206 @@ import snap.util.SnapUtils;
  */
 public class PDFWriterText {
 
-/**
- * Writes the given text run.
- */
-public static void writeText(PDFWriter aWriter, TextBox aTextBox)
-{
-    // If textbox doesn't render all text in bounds, add clip
-    //if(layout.endIndex()<layout.length()) { aWriter.print("0 0 "); aWriter.print(aTextBox.getWidth());
-    //    aWriter.print(' '); aWriter.print(aTextBox.getHeight()); aWriter.println(" re W n"); }
-    
-    // Get page writer
-    PDFPageWriter pwriter = aWriter.getPageWriter();
-    
-    // Flip coordinate system since pdf font transforms are flipped
-    pwriter.gsave();
-    pwriter.append("1 0 0 -1 0 ");
-    pwriter.append(aTextBox.getHeight());
-    pwriter.appendln(" cm");
-    
-    // Output PDF begin text operator
-    pwriter.appendln("BT");
+    /**
+     * Writes the given text run.
+     */
+    public static void writeText(PDFWriter aWriter, TextBox aTextBox)
+    {
+        // If textbox doesn't render all text in bounds, add clip
+        //if(layout.endIndex()<layout.length()) { aWriter.print("0 0 "); aWriter.print(aTextBox.getWidth());
+        //    aWriter.print(' '); aWriter.print(aTextBox.getHeight()); aWriter.println(" re W n"); }
 
-    // Iterate over lines and write
-    TextBoxRun lastRun = null;
-    for(TextBoxLine line : aTextBox.getLines()) {
-        if(line.getY()>aTextBox.getHeight()) break;   // If line below text, bail
-        lastRun = writeLine(aWriter, aTextBox, line, lastRun);
-    }
+        // Get page writer
+        PDFPageWriter pwriter = aWriter.getPageWriter();
 
-    // End Text
-    pwriter.appendln("ET");
-    
-    // Restore unflipped transform
-    pwriter.grestore();
-    
-    // If any underlining in TextBox, add underlining ops
-    if(aTextBox.isUnderlined()) for(TextBoxRun run : aTextBox.getUnderlineRuns(null)) {
-        
-        // Set stroke and stroke width
-        TextStyle style = run.getStyle(); TextBoxLine line = run.getLine();
-        pwriter.setStrokeColor(style.getColor()); pwriter.setStrokeWidth(line.getUnderlineStroke());
-        
-        // Get line end points
-        double x0 = run.getX(), y0 = line.getBaseline() - line.getUnderlineY();
-        double x1 = run.getMaxX(); if(run.getEnd()==line.getEnd()) x1 = line.getX() + line.getWidthNoWhiteSpace();
-        pwriter.moveTo(x0, y0); pwriter.lineTo(x1, y0); pwriter.appendln("S");
-    }
-}
+        // Flip coordinate system since pdf font transforms are flipped
+        pwriter.gsave();
+        pwriter.append("1 0 0 -1 0 ");
+        pwriter.append(aTextBox.getHeight());
+        pwriter.appendln(" cm");
 
-/**
- * Writes the given TextBoxLine to pdf.
- */
-public static TextBoxRun writeLine(PDFWriter aWriter, TextBox aTextBox, TextBoxLine aLine, TextBoxRun aLastRun)
-{
-    // Iterate over line runs and writeRun()
-    TextBoxRun lastRun = aLastRun;
-    for(TextBoxRun run : aLine.getRuns()) {
-        writeRun(aWriter, aTextBox, aLine, run, lastRun);
-        lastRun = run;
-    }
-    
-    // Return last run
-    return lastRun;
-}
+        // Output PDF begin text operator
+        pwriter.appendln("BT");
 
-/**
- * Writes the given TextBoxRun to pdf.
- */
-public static void writeRun(PDFWriter aWriter, TextBox aText, TextBoxLine aLine, TextBoxRun aRun, TextBoxRun aLastRun)
-{
-    // Get pdf page
-    PDFPageWriter pPage = aWriter.getPageWriter();
-    TextStyle style = aRun.getStyle();
-    TextStyle lastStyle = aLastRun!=null? aLastRun.getStyle() : null;
-    
-    // If colorChanged, have writer setFillColor
-    if(lastStyle==null || !lastStyle.getColor().equals(style.getColor()))
-        pPage.setFillColor(aRun.getColor());
-        
-    // Get last x & y
-    double lastX = aLastRun==null? 0 : aLastRun.getX();
-    double lastY = aLastRun==null? aText.getHeight() : aLastRun.getLine().getBaseline();
-        
-    // Set the current text point
-    double runX = aRun.getX() - lastX;
-    double runY = lastY - aLine.getBaseline(); // Flip y coordinate
-    pPage.append(runX).append(' ').append(runY).appendln(" Td");
-    
-    // Get current run font, whether FontChanged and current font entry (base font entry for font, if font has changed)
-    Font font = style.getFont();
-    boolean fontChanged = lastStyle==null || !lastStyle.getFont().equals(style.getFont());
-    PDFFontEntry fontEntry = fontChanged? aWriter.getFontEntry(font, 0) : aWriter.getFontEntry();
-    
-    // If char spacing has changed, set charSpace
-    if(style.getCharSpacing() != (aLastRun==null? 0 : lastStyle.getCharSpacing())) {
-        pPage.append(style.getCharSpacing());
-        pPage.appendln(" Tc");
-    }
-    
-    // If run outline has changed, configure text rendering mode
-    if(!SnapUtils.equals(style.getBorder(), aLastRun==null? null : lastStyle.getBorder())) {
-        Border border = style.getBorder();
-        if(border==null)
-            pPage.appendln("0 Tr");
-        else {
-            pPage.setStrokeColor(border.getColor()); pPage.setStrokeWidth(border.getWidth());
-            if(aRun.getColor().getAlpha()>0) {
-                pPage.setFillColor(style.getColor());
-                pPage.appendln("2 Tr");
-            }
-            else pPage.appendln("1 Tr");
+        // Iterate over lines and write
+        TextBoxRun lastRun = null;
+        for (TextBoxLine line : aTextBox.getLines()) {
+            if (line.getY() > aTextBox.getHeight()) break;   // If line below text, bail
+            lastRun = writeLine(aWriter, aTextBox, line, lastRun);
+        }
+
+        // End Text
+        pwriter.appendln("ET");
+
+        // Restore unflipped transform
+        pwriter.grestore();
+
+        // If any underlining in TextBox, add underlining ops
+        if (aTextBox.isUnderlined()) for (TextBoxRun run : aTextBox.getUnderlineRuns(null)) {
+
+            // Set stroke and stroke width
+            TextStyle style = run.getStyle();
+            TextBoxLine line = run.getLine();
+            pwriter.setStrokeColor(style.getColor());
+            pwriter.setStrokeWidth(line.getUnderlineStroke());
+
+            // Get line end points
+            double x0 = run.getX(), y0 = line.getBaseline() - line.getUnderlineY();
+            double x1 = run.getMaxX();
+            if (run.getEnd() == line.getEnd()) x1 = line.getX() + line.getWidthNoWhiteSpace();
+            pwriter.moveTo(x0, y0);
+            pwriter.lineTo(x1, y0);
+            pwriter.appendln("S");
         }
     }
-    
-    // Get length - just return if zero
-    int length = aRun.length(); if(length==0) return;
-    
-    // Iterate over run chars
-    for(int i=0; i<length; i++) { char c = aRun.charAt(i);
-        
-        // If char is less than 256, just mark it present in fontEntry chars
-        if(c<256) {
-            fontEntry._chars[c] = true;
-            if(fontEntry.getCharSet()!=0) {
-                fontChanged = true;
-                fontEntry = aWriter.getFontEntry(font, 0);
-            }
+
+    /**
+     * Writes the given TextBoxLine to pdf.
+     */
+    public static TextBoxRun writeLine(PDFWriter aWriter, TextBox aTextBox, TextBoxLine aLine, TextBoxRun aLastRun)
+    {
+        // Iterate over line runs and writeRun()
+        TextBoxRun lastRun = aLastRun;
+        for (TextBoxRun run : aLine.getRuns()) {
+            writeRun(aWriter, aTextBox, aLine, run, lastRun);
+            lastRun = run;
         }
-        
-        // If char beyond 255, replace c with its index in fontEntry uchars array (add it if needed)
-        else {
-            
-            // Get index of chars
-            int index = fontEntry._uchars.indexOf(c);
-            
-            // If char not found, add it
-            if(index<0) {
-                index = fontEntry._uchars.size();
-                fontEntry._uchars.add(c);
-            }
-            
-            // If char set changed, reset font entry
-            if(fontEntry.getCharSet() != index/256 + 1) {
-                fontChanged = true;
-                fontEntry = aWriter.getFontEntry(font, index/256 + 1);
-            }
-            
-            // Replace char with index
-            c = (char)(index%256);
-        }
-        
-        // If font changed, end current text show block, set new font, and start new text show block
-        if(fontChanged) {
-            if(i>0) pPage.appendln(") Tj");
-            pPage.append('/'); pPage.append(fontEntry.getPDFName());
-            pPage.append(' '); pPage.append(font.getSize()); pPage.appendln(" Tf");
-            pPage.append('(');
-            aWriter.setFontEntry(fontEntry);
-            fontChanged = false;
-        }
-        
-        // If first char, open paren
-        else if(i==0)
-            pPage.append('(');
-        
-        // Handle special chars for PDF string (might need to do backspace (\b) and form-feed (\f), too)
-        if(c=='\t') { if(aWriter.getIncludeNewlines()) pPage.append("\\t"); continue; }
-        if(c=='\n') { if(aWriter.getIncludeNewlines()) pPage.append("\\n"); continue; }
-        if(c=='\r') { if(aWriter.getIncludeNewlines()) pPage.append("\\r"); continue; }
-        if(c=='(' || c==')' || c=='\\')
-            pPage.append('\\');
-            
-        // Write the char
-        pPage.append(c);
+
+        // Return last run
+        return lastRun;
     }
-    
-    // If run is hyphenated, add hyphen
-    if(aLine.isHyphenated() && aRun==aLine.getRunLast()) pPage.append('-');
-    
-    // End last text show block
-    pPage.appendln(") Tj");
-}
+
+    /**
+     * Writes the given TextBoxRun to pdf.
+     */
+    public static void writeRun(PDFWriter aWriter, TextBox aText, TextBoxLine aLine, TextBoxRun aRun, TextBoxRun aLastRun)
+    {
+        // Get pdf page
+        PDFPageWriter pPage = aWriter.getPageWriter();
+        TextStyle style = aRun.getStyle();
+        TextStyle lastStyle = aLastRun != null ? aLastRun.getStyle() : null;
+
+        // If colorChanged, have writer setFillColor
+        if (lastStyle == null || !lastStyle.getColor().equals(style.getColor()))
+            pPage.setFillColor(aRun.getColor());
+
+        // Get last x & y
+        double lastX = aLastRun == null ? 0 : aLastRun.getX();
+        double lastY = aLastRun == null ? aText.getHeight() : aLastRun.getLine().getBaseline();
+
+        // Set the current text point
+        double runX = aRun.getX() - lastX;
+        double runY = lastY - aLine.getBaseline(); // Flip y coordinate
+        pPage.append(runX).append(' ').append(runY).appendln(" Td");
+
+        // Get current run font, whether FontChanged and current font entry (base font entry for font, if font has changed)
+        Font font = style.getFont();
+        boolean fontChanged = lastStyle == null || !lastStyle.getFont().equals(style.getFont());
+        PDFFontEntry fontEntry = fontChanged ? aWriter.getFontEntry(font, 0) : aWriter.getFontEntry();
+
+        // If char spacing has changed, set charSpace
+        if (style.getCharSpacing() != (aLastRun == null ? 0 : lastStyle.getCharSpacing())) {
+            pPage.append(style.getCharSpacing());
+            pPage.appendln(" Tc");
+        }
+
+        // If run outline has changed, configure text rendering mode
+        if (!SnapUtils.equals(style.getBorder(), aLastRun == null ? null : lastStyle.getBorder())) {
+            Border border = style.getBorder();
+            if (border == null)
+                pPage.appendln("0 Tr");
+            else {
+                pPage.setStrokeColor(border.getColor());
+                pPage.setStrokeWidth(border.getWidth());
+                if (aRun.getColor().getAlpha() > 0) {
+                    pPage.setFillColor(style.getColor());
+                    pPage.appendln("2 Tr");
+                }
+                else pPage.appendln("1 Tr");
+            }
+        }
+
+        // Get length - just return if zero
+        int length = aRun.length();
+        if (length == 0) return;
+
+        // Iterate over run chars
+        for (int i = 0; i < length; i++) {
+            char c = aRun.charAt(i);
+
+            // If char is less than 256, just mark it present in fontEntry chars
+            if (c < 256) {
+                fontEntry._chars[c] = true;
+                if (fontEntry.getCharSet() != 0) {
+                    fontChanged = true;
+                    fontEntry = aWriter.getFontEntry(font, 0);
+                }
+            }
+
+            // If char beyond 255, replace c with its index in fontEntry uchars array (add it if needed)
+            else {
+
+                // Get index of chars
+                int index = fontEntry._uchars.indexOf(c);
+
+                // If char not found, add it
+                if (index < 0) {
+                    index = fontEntry._uchars.size();
+                    fontEntry._uchars.add(c);
+                }
+
+                // If char set changed, reset font entry
+                if (fontEntry.getCharSet() != index / 256 + 1) {
+                    fontChanged = true;
+                    fontEntry = aWriter.getFontEntry(font, index / 256 + 1);
+                }
+
+                // Replace char with index
+                c = (char) (index % 256);
+            }
+
+            // If font changed, end current text show block, set new font, and start new text show block
+            if (fontChanged) {
+                if (i > 0) pPage.appendln(") Tj");
+                pPage.append('/');
+                pPage.append(fontEntry.getPDFName());
+                pPage.append(' ');
+                pPage.append(font.getSize());
+                pPage.appendln(" Tf");
+                pPage.append('(');
+                aWriter.setFontEntry(fontEntry);
+                fontChanged = false;
+            }
+
+            // If first char, open paren
+            else if (i == 0)
+                pPage.append('(');
+
+            // Handle special chars for PDF string (might need to do backspace (\b) and form-feed (\f), too)
+            if (c == '\t') {
+                if (aWriter.getIncludeNewlines()) pPage.append("\\t");
+                continue;
+            }
+            if (c == '\n') {
+                if (aWriter.getIncludeNewlines()) pPage.append("\\n");
+                continue;
+            }
+            if (c == '\r') {
+                if (aWriter.getIncludeNewlines()) pPage.append("\\r");
+                continue;
+            }
+            if (c == '(' || c == ')' || c == '\\')
+                pPage.append('\\');
+
+            // Write the char
+            pPage.append(c);
+        }
+
+        // If run is hyphenated, add hyphen
+        if (aLine.isHyphenated() && aRun == aLine.getRunLast()) pPage.append('-');
+
+        // End last text show block
+        pPage.appendln(") Tj");
+    }
 
 }

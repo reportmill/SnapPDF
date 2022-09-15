@@ -3,6 +3,7 @@
  */
 package snappdf.read;
 import java.util.*;
+
 import snap.geom.Rect;
 import snap.geom.Transform;
 import snappdf.*;
@@ -15,60 +16,76 @@ import snappdf.*;
  * This method can be used by form xobjects as well as pattern colorspaces.
  */
 public class PDFForm {
-    
+
     // The stream bytes
-    byte     _streamBytes[];
-    
+    byte _streamBytes[];
+
     // The form dictionary
-    Map      _formDict;
-    
+    Map _formDict;
+
     // The tokens
-    List <PageToken>     _tokens;
-    
-/**
- * Creates a PDFForm for given PDFStream.
- */
-public PDFForm(PDFStream aStream)
-{
-    _streamBytes = aStream.decodeStream();
-    _formDict = aStream.getDict();
-}
+    List<PageToken> _tokens;
 
-/**
- * Returns list of tokens that defines this form. The PDFPagePainter is used to parse the stream the first time around.
- */
-public List <PageToken> getTokens()  { return _tokens!=null? _tokens : (_tokens=PageToken.getTokens(_streamBytes)); }
+    /**
+     * Creates a PDFForm for given PDFStream.
+     */
+    public PDFForm(PDFStream aStream)
+    {
+        _streamBytes = aStream.decodeStream();
+        _formDict = aStream.getDict();
+    }
 
-/**
- * Returns the stream data.  The tokens maintain pointers into this byte array for all string storage.
- */
-public byte[] getBytes() { return _streamBytes; }
+    /**
+     * Returns list of tokens that defines this form. The PDFPagePainter is used to parse the stream the first time around.
+     */
+    public List<PageToken> getTokens()
+    {
+        return _tokens != null ? _tokens : (_tokens = PageToken.getTokens(_streamBytes));
+    }
 
-/**
- * The form space->user space transform, from the Form's Matrix entry.
- */
-public Transform getTransform() 
-{
-    Transform xform = PDFDictUtils.getTransform(_formDict,null,"Matrix");
-    if(xform==null) xform = new Transform(); // Matrix is optional - default is identity
-    return xform;
-}
+    /**
+     * Returns the stream data.  The tokens maintain pointers into this byte array for all string storage.
+     */
+    public byte[] getBytes()
+    {
+        return _streamBytes;
+    }
 
-/**
- * The Form bounding box (in form space).
- */
-public Rect getBBox() 
-{
-    Rect r = PDFDictUtils.getRect(_formDict, null, "BBox");
-    if(r==null) throw new PDFException("Error reading form bbox");
-      
-    // Make sure form bboxes always have positive widths & heights
-    double w = r.getWidth(), h = r.getHeight();
-    if(w<0 || h<0) { r.x += (w<0? w : 0); r.y += (h<0? h : 0); r.width = Math.abs(w); r.height = Math.abs(h); }
-    return r;
-}
+    /**
+     * The form space->user space transform, from the Form's Matrix entry.
+     */
+    public Transform getTransform()
+    {
+        Transform xform = PDFDictUtils.getTransform(_formDict, null, "Matrix");
+        if (xform == null) xform = new Transform(); // Matrix is optional - default is identity
+        return xform;
+    }
 
-/** The form's resources dictionary */
-public Map getResources(PDFFile srcfile)  { return (Map)srcfile.getXRefObj(_formDict.get("Resources")); }
+    /**
+     * The Form bounding box (in form space).
+     */
+    public Rect getBBox()
+    {
+        Rect r = PDFDictUtils.getRect(_formDict, null, "BBox");
+        if (r == null) throw new PDFException("Error reading form bbox");
+
+        // Make sure form bboxes always have positive widths & heights
+        double w = r.getWidth(), h = r.getHeight();
+        if (w < 0 || h < 0) {
+            r.x += (w < 0 ? w : 0);
+            r.y += (h < 0 ? h : 0);
+            r.width = Math.abs(w);
+            r.height = Math.abs(h);
+        }
+        return r;
+    }
+
+    /**
+     * The form's resources dictionary
+     */
+    public Map getResources(PDFFile srcfile)
+    {
+        return (Map) srcfile.getXRefObj(_formDict.get("Resources"));
+    }
 
 }

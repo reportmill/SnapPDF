@@ -5,6 +5,7 @@ import snap.gfx.Image;
 import snap.gfx.Painter;
 import snappdf.read.PDFPagePainter;
 import snappdf.write.PDFEncryptor;
+
 import java.security.MessageDigest;
 import java.util.*;
 
@@ -25,13 +26,13 @@ public class PDFEnvSwing extends PDFEnv {
 
             // Create MessageDigest and add InfoDict.values
             MessageDigest md = MessageDigest.getInstance("MD5");
-            Map<String,String> infoDict = aFile.getInfoDict();
+            Map<String, String> infoDict = aFile.getInfoDict();
             for (String str : infoDict.values())
                 md.update(str.getBytes());
 
             // Rather than adding file size, which we won't have until everything gets dumped out, add number
             // of objects in xref table (as 4 bytes). This is probably going to be the same for everyone.
-            for (int i=0, size=aFile._xtable.getEntryCount(); i<4; i++) {
+            for (int i = 0, size = aFile._xtable.getEntryCount(); i < 4; i++) {
                 md.update((byte) (size & 0xff));
                 size >>= 8;
             }
@@ -40,14 +41,13 @@ public class PDFEnvSwing extends PDFEnv {
             byte digest_bytes[] = md.digest();
 
             // This should never happen, so this is here just in case something goes wrong.
-            if (digest_bytes.length>16)
+            if (digest_bytes.length > 16)
                 digest_bytes = Arrays.copyOf(digest_bytes, 16);
             return digest_bytes;
         }
 
         // If the md5 fails, just create a fileID with random bytes
-        catch(java.security.NoSuchAlgorithmException nsae)
-        {
+        catch (java.security.NoSuchAlgorithmException nsae) {
             byte fileId[] = new byte[16];
             new Random().nextBytes(fileId);
             return fileId;
@@ -67,10 +67,10 @@ public class PDFEnvSwing extends PDFEnv {
         int height = (int) Math.round(bounds.height);
 
         // Create PDF painter that renders into an image
-        Image img = Image.get(width,height,false);
+        Image img = Image.get(width, height, false);
         Painter ipntr = img.getPainter();
         ipntr.setColor(Color.WHITE);
-        ipntr.fillRect(0,0,width,height);
+        ipntr.fillRect(0, 0, width, height);
 
         // Create PDF painter that renders into an image
         PDFPagePainter ppntr = new PDFPagePainter(aPage);

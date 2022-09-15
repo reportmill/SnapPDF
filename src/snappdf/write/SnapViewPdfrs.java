@@ -10,79 +10,86 @@ import snap.view.*;
 public class SnapViewPdfrs {
 
     // SnapTextViewPdfr
-    static SnapTextViewPdfr     _textViewPdfr = new SnapTextViewPdfr();
+    static SnapTextViewPdfr _textViewPdfr = new SnapTextViewPdfr();
 
     // SnapImageViewPdfr
-    static SnapImageViewPdfr    _imgViewPdfr = new SnapImageViewPdfr();
+    static SnapImageViewPdfr _imgViewPdfr = new SnapImageViewPdfr();
 
     // SnapPageViewPdfr
-    static SnapPageViewPdfr     _pageViewPdfr = new SnapPageViewPdfr();
+    static SnapPageViewPdfr _pageViewPdfr = new SnapPageViewPdfr();
 
-/**
- * This class generates PDF for an TextView.
- */
-public static class SnapTextViewPdfr <T extends TextView> extends SnapViewPdfr<T> {
+    /**
+     * This class generates PDF for an TextView.
+     */
+    public static class SnapTextViewPdfr<T extends TextView> extends SnapViewPdfr<T> {
 
-    /** Writes a given View hierarchy to a PDF file (recursively). */
-    protected void writeView(T aTextView, PDFWriter aWriter)
-    {
-        super.writeView(aTextView, aWriter);
-        PDFWriterText.writeText(aWriter, aTextView.getTextBox());
+        /**
+         * Writes a given View hierarchy to a PDF file (recursively).
+         */
+        protected void writeView(T aTextView, PDFWriter aWriter)
+        {
+            super.writeView(aTextView, aWriter);
+            PDFWriterText.writeText(aWriter, aTextView.getTextBox());
+        }
     }
-}
 
-/**
- * PDF writer for ImageView.
- */
-public static class SnapImageViewPdfr <T extends ImageView> extends SnapViewPdfr <T> {
+    /**
+     * PDF writer for ImageView.
+     */
+    public static class SnapImageViewPdfr<T extends ImageView> extends SnapViewPdfr<T> {
 
-    /** Override to write Image. */
-    protected void writeView(T anImageView, PDFWriter aWriter)
-    {
-        // Do normal version
-        super.writeView(anImageView, aWriter);
-        
-        // Get page writer, image and image bounds (just return if missing or invalid)
-        PDFPageWriter pwriter = aWriter.getPageWriter();
-        Image image = anImageView.getImage(); if(image==null) return;
-        Rect bnds = anImageView.getImageBounds();
-        
-        // Apply clip if needed
+        /**
+         * Override to write Image.
+         */
+        protected void writeView(T anImageView, PDFWriter aWriter)
+        {
+            // Do normal version
+            super.writeView(anImageView, aWriter);
+
+            // Get page writer, image and image bounds (just return if missing or invalid)
+            PDFPageWriter pwriter = aWriter.getPageWriter();
+            Image image = anImageView.getImage();
+            if (image == null) return;
+            Rect bnds = anImageView.getImageBounds();
+
+            // Apply clip if needed
         /*if(anImageView.getRadius()>.001) {
             Shape path = anImageView.getPath(); pwriter.writePath(path); pwriter.append("W n "); }*/
-            
-        pwriter.writeDrawImage(image, bnds.x, bnds.y, bnds.width, bnds.height);
-    }
-}
 
-/**
- * This ViewPdfr subclass writes PDF for PageView.
- */
-public static class SnapPageViewPdfr <T extends PageView> extends SnapViewPdfr <T> {
-
-    /** Writes a given View hierarchy to a PDF file (recursively). */
-    public void writePDF(T aPageView, PDFWriter aWriter)
-    {
-        // Get pdf page
-        PDFPageWriter pdfPage = aWriter.getPageWriter();
-        
-        // Write page header comment
-        int page = 1; //aPageView.page();
-        pdfPage.appendln("\n% ------ page " + (page - 1) + " -----");
-            
-        // legacy defaults different from pdf defaults
-        pdfPage.setLineCap(1);
-        pdfPage.setLineJoin(1);
-        
-        // Flip coords to match java2d model
-        pdfPage.append("1 0 0 -1 0 ").append(aPageView.getHeight()).appendln(" cm");    
-    
-        // Write View children
-        writeViewChildren(aPageView, aWriter);
+            pwriter.writeDrawImage(image, bnds.x, bnds.y, bnds.width, bnds.height);
+        }
     }
-    
-    /** Override to suppress grestore. */
-    //protected void writeViewAfter(T aView, PDFWriter aWriter)  { }
-}
+
+    /**
+     * This ViewPdfr subclass writes PDF for PageView.
+     */
+    public static class SnapPageViewPdfr<T extends PageView> extends SnapViewPdfr<T> {
+
+        /**
+         * Writes a given View hierarchy to a PDF file (recursively).
+         */
+        public void writePDF(T aPageView, PDFWriter aWriter)
+        {
+            // Get pdf page
+            PDFPageWriter pdfPage = aWriter.getPageWriter();
+
+            // Write page header comment
+            int page = 1; //aPageView.page();
+            pdfPage.appendln("\n% ------ page " + (page - 1) + " -----");
+
+            // legacy defaults different from pdf defaults
+            pdfPage.setLineCap(1);
+            pdfPage.setLineJoin(1);
+
+            // Flip coords to match java2d model
+            pdfPage.append("1 0 0 -1 0 ").append(aPageView.getHeight()).appendln(" cm");
+
+            // Write View children
+            writeViewChildren(aPageView, aWriter);
+        }
+
+        /** Override to suppress grestore. */
+        //protected void writeViewAfter(T aView, PDFWriter aWriter)  { }
+    }
 
 }

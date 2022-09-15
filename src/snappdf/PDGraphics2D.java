@@ -263,7 +263,7 @@ public class PDGraphics2D extends Graphics2D {
     public void drawString(AttributedCharacterIterator iterator, int x, int y)
     {
         checkGStack();
-        drawString(iterator, (float)x, (float)y);
+        drawString(iterator, (float) x, (float) y);
     }
 
     @Override
@@ -282,8 +282,7 @@ public class PDGraphics2D extends Graphics2D {
         _painter.translate(aX, aY);
 
         // Iterate over glyphs and fill
-        for (int i=0, iMax=aGV.getNumGlyphs(); i<iMax; i++)
-        {
+        for (int i = 0, iMax = aGV.getNumGlyphs(); i < iMax; i++) {
             Shape glyph = aGV.getGlyphOutline(i);
             fill(glyph);
         }
@@ -501,13 +500,22 @@ public class PDGraphics2D extends Graphics2D {
     }
 
     @Override
-    public RenderingHints getRenderingHints()  { return _g2d.getRenderingHints(); }
+    public RenderingHints getRenderingHints()
+    {
+        return _g2d.getRenderingHints();
+    }
 
     @Override
-    public void setRenderingHints(Map<?, ?> hints)  { _g2d.setRenderingHints(hints);}
+    public void setRenderingHints(Map<?, ?> hints)
+    {
+        _g2d.setRenderingHints(hints);
+    }
 
     @Override
-    public void addRenderingHints(Map<?, ?> hints)  { _g2d.addRenderingHints(hints); }
+    public void addRenderingHints(Map<?, ?> hints)
+    {
+        _g2d.addRenderingHints(hints);
+    }
 
     @Override
     public Graphics create()
@@ -520,7 +528,9 @@ public class PDGraphics2D extends Graphics2D {
     }
 
     @Override
-    public void setPaintMode()  { }
+    public void setPaintMode()
+    {
+    }
 
     @Override
     public void setXORMode(Color c1)
@@ -549,8 +559,7 @@ public class PDGraphics2D extends Graphics2D {
     @Override
     public void dispose()
     {
-        if (_gstack.peek()==this)
-        {
+        if (_gstack.peek() == this) {
             _gstack.pop();
             _painter.restore();
         }
@@ -561,8 +570,7 @@ public class PDGraphics2D extends Graphics2D {
      */
     protected void checkGStack()
     {
-        while (_gstack.peek()!=this)
-        {
+        while (_gstack.peek() != this) {
             _gstack.pop();
             _painter.restore();
         }
@@ -583,20 +591,17 @@ public class PDGraphics2D extends Graphics2D {
         PDGraphics2D gfx = new PDGraphics2D(width, height);
 
         // Iterate over pages and paint to Graphics
-        for (int i=0; i<pageCount; i++)
-        {
+        for (int i = 0; i < pageCount; i++) {
             // If successive page, add page to writer
-            if (i>0) gfx._painter.getWriter().addPage();
+            if (i > 0) gfx._painter.getWriter().addPage();
 
             // Get Printable and PageFormat for page and paint to Graphics
             Printable printable = aPageable.getPrintable(i);
             PageFormat pageFmt = aPageable.getPageFormat(i);
-            try
-            {
+            try {
                 printable.print(gfx, pageFmt, i);
             }
-            catch (PrinterException e)
-            {
+            catch (PrinterException e) {
                 throw new RuntimeException(e);
             }
         }

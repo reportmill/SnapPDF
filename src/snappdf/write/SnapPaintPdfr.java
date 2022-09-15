@@ -30,8 +30,8 @@ public class SnapPaintPdfr {
         pdfPage.writePath(aShape);
 
         // Get color
-        Color color = aPaint instanceof Color ? (Color)aPaint : null;
-        if (color==null) {
+        Color color = aPaint instanceof Color ? (Color) aPaint : null;
+        if (color == null) {
             System.err.println("SnapPaintPdfr.writeDrawShapeWithPaintAndStroke: Non-color not supported");
             color = Color.BLACK;
         }
@@ -41,9 +41,9 @@ public class SnapPaintPdfr {
         pdfPage.setStrokeWidth(aStroke.getWidth());
 
         // Write dash array
-        if(aStroke.getDashArray()!=null && aStroke.getDashArray().length>1)
+        if (aStroke.getDashArray() != null && aStroke.getDashArray().length > 1)
             pdfPage.append('[').append(Stroke.getDashArrayString(aStroke.getDashArray(), " ")).append("] ")
-                .append(aStroke.getDashOffset()).appendln(" d");
+                    .append(aStroke.getDashOffset()).appendln(" d");
 
         // Write stroke operator
         pdfPage.appendln("S");
@@ -60,11 +60,11 @@ public class SnapPaintPdfr {
 
         // aPaint ImagePaint
         if (aPaint instanceof ImagePaint)
-            writeImagePaint(aWriter, (ImagePaint)aPaint, aShape, aShape.getBounds());
+            writeImagePaint(aWriter, (ImagePaint) aPaint, aShape, aShape.getBounds());
 
-        // Handle color fill
-        else if(aPaint instanceof Color) {
-            writeShapeFill(aShape, (Color)aPaint, aWriter);
+            // Handle color fill
+        else if (aPaint instanceof Color) {
+            writeShapeFill(aShape, (Color) aPaint, aWriter);
         }
     }
 
@@ -207,7 +207,8 @@ public class SnapPaintPdfr {
     public static void writeImagePaint(PDFWriter aWriter, ImagePaint anImageFill, Shape aPath, Rect bounds)
     {
         // Get image (just return if missing or invalid) and name
-        Image img = anImageFill.getImage(); if(img==null) return;
+        Image img = anImageFill.getImage();
+        if (img == null) return;
         String iname = aWriter.getImageName(img);
         aWriter.addImage(img);
 
@@ -218,7 +219,7 @@ public class SnapPaintPdfr {
         pdfPage.gsave();
 
         // If path was provided, clip to it
-        if(aPath!=null) {
+        if (aPath != null) {
             pdfPage.writePath(aPath);
             pdfPage.appendln(" W n");
         }
@@ -277,14 +278,14 @@ public class SnapPaintPdfr {
         // All other fillStyles just smack image in imageBounds
         //else {
 
-            // Get image bounds width and height
-            double width = bounds.width, height = bounds.height;
+        // Get image bounds width and height
+        double width = bounds.width, height = bounds.height;
 
-            // Apply CTM - image coords are flipped from page coords ( (0,0) at upper-left )
-            pdfPage.writeTransform(width, 0, 0, -height, anImageFill.getX() + bounds.x, anImageFill.getY() + bounds.getMaxY());
+        // Apply CTM - image coords are flipped from page coords ( (0,0) at upper-left )
+        pdfPage.writeTransform(width, 0, 0, -height, anImageFill.getX() + bounds.x, anImageFill.getY() + bounds.getMaxY());
 
-            // Do image
-            pdfPage.appendln("/" + iname + " Do");
+        // Do image
+        pdfPage.appendln("/" + iname + " Do");
         //}
 
         // Grestore

@@ -53,7 +53,9 @@ public class PDPainter extends PainterImpl {
         return _writer.getBytes();
     }
 
-    /** Sets the current font. */
+    /**
+     * Sets the current font.
+     */
     public void setFont(Font aFont)
     {
         // Do normal version
@@ -64,7 +66,9 @@ public class PDPainter extends PainterImpl {
         pdfPage.setFont(aFont);
     }
 
-    /** Sets the current paint. */
+    /**
+     * Sets the current paint.
+     */
     public void setPaint(Paint aPaint)
     {
         // Do normal version
@@ -73,7 +77,7 @@ public class PDPainter extends PainterImpl {
         // Write paint
         PDFPageWriter pdfPage = _writer.getPageWriter();
         if (aPaint instanceof Color) {
-            Color color = (Color)aPaint;
+            Color color = (Color) aPaint;
             pdfPage.setFillColor(color);
             pdfPage.setStrokeColor(color);
         }
@@ -81,7 +85,9 @@ public class PDPainter extends PainterImpl {
         else System.err.println("PDPainter.setPaint: Paint type not implemented " + aPaint.getClass().getSimpleName());
     }
 
-    /** Sets the current stroke. */
+    /**
+     * Sets the current stroke.
+     */
     public void setStroke(Stroke aStroke)
     {
         // Do normal version
@@ -92,7 +98,9 @@ public class PDPainter extends PainterImpl {
         pdfPage.setStrokeWidth(aStroke.getWidth());
     }
 
-    /** Sets the opacity. */
+    /**
+     * Sets the opacity.
+     */
     public void setOpacity(double aValue)
     {
         // Do normal version
@@ -103,7 +111,9 @@ public class PDPainter extends PainterImpl {
         pdfPage.setOpacity(aValue);
     }
 
-    /** Stroke the given shape. */
+    /**
+     * Stroke the given shape.
+     */
     public void draw(Shape aShape)
     {
         // Do normal version
@@ -115,7 +125,9 @@ public class PDPainter extends PainterImpl {
         SnapPaintPdfr.writeDrawShapeWithPaintAndStroke(_writer, aShape, paint, stroke);
     }
 
-    /** Fill the given shape. */
+    /**
+     * Fill the given shape.
+     */
     public void fill(Shape aShape)
     {
         // Do normal version
@@ -126,7 +138,9 @@ public class PDPainter extends PainterImpl {
         SnapPaintPdfr.writeFillShapeWithPaint(_writer, aShape, paint);
     }
 
-    /** Draw image with transform. */
+    /**
+     * Draw image with transform.
+     */
     public void drawImage(Image anImg, Transform aTrans)
     {
         // Do normal version
@@ -144,7 +158,9 @@ public class PDPainter extends PainterImpl {
                 dstBnds.x, dstBnds.y, dstBnds.width, dstBnds.height);
     }
 
-    /** Draw image in rect. */
+    /**
+     * Draw image in rect.
+     */
     public void drawImage(Image img, double sx, double sy, double sw, double sh, double dx, double dy, double dw, double dh)
     {
         // Do normal version
@@ -154,7 +170,7 @@ public class PDPainter extends PainterImpl {
         PDFPageWriter pwriter = _writer.getPageWriter();
 
         // If source bounds not image, complain
-        if (sx!=0 || sy!=0 || sw!=img.getWidth() || sh!=img.getHeight()) {
+        if (sx != 0 || sy != 0 || sw != img.getWidth() || sh != img.getHeight()) {
             System.err.println("PDPainter.drawImage: Not implemented for custom source bounds");
         }
 
@@ -163,7 +179,9 @@ public class PDPainter extends PainterImpl {
         pwriter.writeDrawImage(img, dstBnds, null);
     }
 
-    /** Draw string at location with char spacing. */
+    /**
+     * Draw string at location with char spacing.
+     */
     public void drawString(String aStr, double aX, double aY, double cs)
     {
         // Do normal version
@@ -195,7 +213,7 @@ public class PDPainter extends PainterImpl {
 
         // If not rotated/scaled, write simple translation matrix
         PDFPageWriter pdfPage = _writer.getPageWriter();
-        if(aTrans.isSimple())
+        if (aTrans.isSimple())
             pdfPage.append("1 0 0 1 ").append(aTrans.getX()).append(' ').append(aTrans.getY()).appendln(" cm");
 
             // If rotated/scaled, write full transform
