@@ -393,7 +393,7 @@ public class PDFReader extends Parser {
     /**
      * Override to provide tokenizer that skips whitespace and comments.
      */
-    protected Tokenizer createTokenizerImpl()
+    protected Tokenizer createTokenizer()
     {
         return new Tokenizer() {
             protected void skipWhiteSpace()
