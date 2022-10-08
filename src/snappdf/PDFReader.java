@@ -172,7 +172,7 @@ public class PDFReader extends Parser {
         }
 
         // If next string is "trailer", read trailer dict
-        Token token = getToken();
+        ParseToken token = getToken();
         if (token.getString().equals("trailer")) {
             String tstr = readString();
             return (Map) readObject();
@@ -272,8 +272,8 @@ public class PDFReader extends Parser {
      */
     protected String readString()
     {
-        snap.parse.Token token = getToken();
-        setCharIndex(token.getInputEnd());
+        ParseToken token = getToken();
+        setCharIndex(token.getEndCharIndex());
         return token.getString();
     }
 
