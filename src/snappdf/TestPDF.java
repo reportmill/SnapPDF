@@ -1,5 +1,6 @@
 package snappdf;
 import snap.gfx.*;
+import snap.text.RichText;
 import snap.text.TextDoc;
 import snap.text.TextStyle;
 import snap.util.SnapUtils;
@@ -10,7 +11,7 @@ import snap.view.*;
  */
 public class TestPDF {
 
-    public static void main(String args[])
+    public static void main(String[] args)
     {
         DocView doc = new DocView();
         PageView page = new PageView();
@@ -24,26 +25,29 @@ public class TestPDF {
         page.addChild(rect);
 
         // Add Text
-        TextView text = new TextView();
-        text.setBounds(380, 80, 300, 200);
-        text.setWrapLines(true);
-        text.setRotate(-20);
-        text.setText("Why is the world in love again, why are they marching hand in hand?");
-        text.setFont(new Font("Arial Bold", 24));
-        text.setBorder(Color.GREEN, 1);
-        text.setFill(new Color("#AACCEE33"));
-        text.setRichText(true);
-        TextDoc textDoc = text.getTextDoc();
-        textDoc.setStyleValue(TextStyle.UNDERLINE_KEY, 1, 20, 30);
-        page.addChild(text);
+        TextView textView = new TextView();
+        textView.setBounds(380, 80, 300, 200);
+        textView.setWrapLines(true);
+        textView.setRotate(-20);
+        textView.setBorder(Color.GREEN, 1);
+        textView.setFill(new Color("#AACCEE33"));
+        page.addChild(textView);
+
+        // Create/set RichText doc
+        RichText richText = new RichText();
+        richText.addChars("Why is the world in love again, why are they marching hand in hand?");
+        richText.setStyleValue(new Font("Arial Bold", 24));
+        richText.setStyleValue(TextStyle.UNDERLINE_KEY, 1, 20, 30);
+        TextArea textArea = textView.getTextArea();
+        textArea.setTextDoc(richText);
 
         // Add Image
-        ImageView iview = new ImageView("/Users/jeff/DesktopStack/Images/Daisy.jpg");
-        iview.setBounds(36, 36, 320, 480);
-        iview.setOpacity(.8);
-        page.addChild(iview, 0);
+        ImageView imageView = new ImageView("/Users/jeff/DesktopStack/Images/Daisy.jpg");
+        imageView.setBounds(36, 36, 320, 480);
+        imageView.setOpacity(.8);
+        page.addChild(imageView, 0);
 
-        byte bytes[] = new PDFWriter().getBytes(doc);
+        byte[] bytes = new PDFWriter().getBytes(doc);
         SnapUtils.writeBytes(bytes, "/tmp/test.pdf");
         GFXEnv.getEnv().openURL("/tmp/test.pdf");
     }
