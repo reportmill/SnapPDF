@@ -224,6 +224,14 @@ public class PDFFile {
     }
 
     /**
+     * Returns the creator of the pdf file.
+     */
+    public String getCreator()
+    {
+        return _infoDict.get("Creator");
+    }
+
+    /**
      * Sets the creator of the pdf file.
      */
     public void setCreator(String aStr)
