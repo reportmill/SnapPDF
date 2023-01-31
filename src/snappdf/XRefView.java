@@ -168,8 +168,8 @@ public class XRefView extends ViewOwner {
     {
         // Get TabView
         TabView tabView = getView("TabView", TabView.class);
-        tabView.getTabContent(0).setBorder(null);
-        tabView.getTabContent(1).setBorder(null);
+        tabView.getTab(0).getContent().setBorder(null);
+        tabView.getTab(1).getContent().setBorder(null);
 
         // Configure NameLabel
         Label label = getView("NameLabel", Label.class);
