@@ -141,10 +141,13 @@ public class PDFWriterText {
 
         // Iterate over run chars
         for (int i = 0; i < length; i++) {
+
+            // Get char and whether in ascii range
             char c = aRun.charAt(i);
+            boolean inAsciiRange = c < 256;
 
             // If char is less than 256, just mark it present in fontEntry chars
-            if (c < 256) {
+            if (inAsciiRange) {
                 fontEntry._chars[c] = true;
                 if (fontEntry.getCharSet() != 0) {
                     fontChanged = true;
@@ -193,18 +196,21 @@ public class PDFWriterText {
 
             // Handle special chars for PDF string (might need to do backspace (\b) and form-feed (\f), too)
             if (c == '\t') {
-                if (aWriter.getIncludeNewlines()) pPage.append("\\t");
+                if (!inAsciiRange || aWriter.getIncludeNewlines())
+                    pPage.append("\\t");
                 continue;
             }
             if (c == '\n') {
-                if (aWriter.getIncludeNewlines()) pPage.append("\\n");
+                if (!inAsciiRange || aWriter.getIncludeNewlines())
+                    pPage.append("\\n");
                 continue;
             }
             if (c == '\r') {
-                if (aWriter.getIncludeNewlines()) pPage.append("\\r");
+                if (!inAsciiRange || aWriter.getIncludeNewlines())
+                    pPage.append("\\r");
                 continue;
             }
-            if (c == '(' || c == ')' || c == '\\')
+            if (c == '(' || c == ')' || c == '\\' || !inAsciiRange)
                 pPage.append('\\');
 
             // Write the char
