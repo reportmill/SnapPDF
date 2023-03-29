@@ -158,23 +158,22 @@ public class PDFWriterText {
             // If char beyond 255, replace c with its index in fontEntry uchars array (add it if needed)
             else {
 
-                // Get index of chars
-                int index = fontEntry._uchars.indexOf(c);
-
-                // If char not found, add it
-                if (index < 0) {
-                    index = fontEntry._uchars.size();
+                // Get index of char - if not found, add it
+                int charIndex = fontEntry._uchars.indexOf(c);
+                if (charIndex < 0) {
+                    charIndex = fontEntry._uchars.size();
                     fontEntry._uchars.add(c);
                 }
 
                 // If char set changed, reset font entry
-                if (fontEntry.getCharSet() != index / 256 + 1) {
+                int charSetIndex = charIndex / 256 + 1;
+                if (fontEntry.getCharSet() != charSetIndex) {
                     fontChanged = true;
-                    fontEntry = aWriter.getFontEntry(font, index / 256 + 1);
+                    fontEntry = aWriter.getFontEntry(font, charSetIndex);
                 }
 
-                // Replace char with index
-                c = (char) (index % 256);
+                // Replace char with char index
+                c = (char) (charIndex % 256);
             }
 
             // If font changed, end current text show block, set new font, and start new text show block
@@ -210,7 +209,17 @@ public class PDFWriterText {
                     pPage.append("\\r");
                 continue;
             }
-            if (c == '(' || c == ')' || c == '\\' || !inAsciiRange)
+            if (c == '\b') {
+                if (!inAsciiRange)
+                    pPage.append("\\b");
+                continue;
+            }
+            if (c == '\f') {
+                if (!inAsciiRange)
+                    pPage.append("\\f");
+                continue;
+            }
+            if (c == '(' || c == ')' || c == '\\')
                 pPage.append('\\');
 
             // Write the char
