@@ -80,7 +80,7 @@ public class XRefView extends ViewOwner {
         _src = aSource;
 
         if (_src instanceof WebURL)
-            setName(((WebURL) _src).getPathName());
+            setName(((WebURL) _src).getFilename());
 
         // Get source bytes and reset file
         byte bytes[] = SnapUtils.getBytes(_src);
@@ -388,7 +388,7 @@ public class XRefView extends ViewOwner {
         // Create Viewer
         XRefView xrv = new XRefView(url);
         xrv.getUI().setPrefSize(1000, 1000);
-        xrv.getWindow().setTitle(url.getPathName() + " - " + url.getPathNameSimple());
+        xrv.getWindow().setTitle(url.getFilename() + " - " + url.getFilenameSimple());
         //if(SnapUtils.isTeaVM) xrv.getWindow().setMaximized(true);
         xrv.setWindowVisible(true);
     }
