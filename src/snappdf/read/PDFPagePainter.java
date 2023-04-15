@@ -5,11 +5,7 @@ package snappdf.read;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.util.*;
-
-import snap.geom.Path;
-import snap.geom.Point;
-import snap.geom.Rect;
-import snap.geom.Transform;
+import snap.geom.*;
 import snap.gfx.*;
 import snap.gfx.Image;
 import snappdf.*;
@@ -32,7 +28,7 @@ public class PDFPagePainter {
     PDFFile _pfile;
 
     // The page bytes holding page operators and data to be painted
-    byte _pageBytes[];
+    byte[] _pageBytes;
 
     // A helper class to handle text processing
     PDFPageText _text;
@@ -50,7 +46,7 @@ public class PDFPagePainter {
     int _index;
 
     // Current path
-    Path _path = null;
+    Path2D _path = null;
 
     // Whether to clip after next draw op
     boolean _doClip;
@@ -74,7 +70,7 @@ public class PDFPagePainter {
         _text = new PDFPageText(this);
 
         // Create the gstate list and the default gstate
-        _gstates = new Stack();
+        _gstates = new Stack<>();
         _gstates.push(_gstate = new PDFGState());
     }
 
@@ -96,18 +92,19 @@ public class PDFPagePainter {
         aPntr.save();
 
         // Get Source bounds (the natural bounds of the Page, Form or Pattern)
-        Rect srcBnds = null;
+        Rect srcBnds;
         if (aSource instanceof PDFForm) {
             PDFForm form = (PDFForm) aSource;
             Rect bbox = form.getBBox();
             srcBnds = new Rect(0, 0, bbox.getWidth(), bbox.getHeight());
         }
-        if (aSource instanceof PDFPattern) {
+        else if (aSource instanceof PDFPattern) {
             PDFPattern ptrn = (PDFPattern) aSource;
             srcBnds = new Rect(0, 0, ptrn.getBounds().getWidth(), ptrn.getBounds().getHeight());
         }
         else {
-            Rect media = _page.getMediaBox(), crop = _page.getCropBox();
+            Rect media = _page.getMediaBox();
+            Rect crop = _page.getCropBox();
             srcBnds = media.getIntersectRect(crop);
             srcBnds.snap();
         }
@@ -169,210 +166,74 @@ public class PDFPagePainter {
         String op = aToken.getString();
 
         switch (op) {
-            case "b":
-                b();
-                break;      // Closepath, fill, stroke
-            case "b*":
-                b_x();
-                break;   // Closepath, fill, stroke (EO)
-            case "B":
-                B();
-                break;      // Fill, stroke
-            case "B*":
-                B_x();
-                break;   // Fill, stroke (EO)
-            case "BT":
-                BT();
-                break;    // Begin Text
-            case "BX":
-                BX();
-                break;
-            case "BI":
-                BI();
-                break;
-            case "BDC":
-            case "BMC":
-                BDC();
-                break;
-            case "c":
-                c();
-                break;      // Curveto
-            case "cm":
-                cm();
-                break;    // Concat matrix
-            case "cs":
-                cs();
-                break;    // Set colorspace
-            case "CS":
-                CS();
-                break;    // Set stroke colorspace
-            case "d":
-                d();
-                break;      // Set dash
-            case "Do":
-                Do();
-                break;    // Do xobject
-            case "DP":
-                DP();
-                break;    // Marked content
-            case "ET":
-                ET();
-                break;    // End text
-            case "EX":
-                EX();
-                break;
-            case "EMC":
-                EMC();
-                break;
-            case "f":
-            case "F":
-                f();
-                break;     // Fill
-            case "f*":
-            case "F*":
-                f_x();
-                break; // Fill (EO)
-            case "g":
-                g();
-                break;      // Set gray
-            case "gs":
-                gs();
-                break;    // Extended graphics state
-            case "G":
-                G();
-                break;      // Set stroke gray
-            case "h":
-                h();
-                break;      // Closepath
-            case "i":
-                i();
-                break;      // Set flatness
-            case "ID":
-                ID();
-                break;
-            case "j":
-                j();
-                break;      // Set linejoin
-            case "J":
-                J();
-                break;      // Set linecap
-            case "k":
-                k();
-                break;      // Set cmyk
-            case "K":
-                K();
-                break;      // Set stroke cmyk
-            case "l":
-                l();
-                break;      // Lineto
-            case "m":
-                m();
-                break;      // Moveto
-            case "M":
-                M();
-                break;      // Set miterlimit
-            case "MP":
-                MP();
-                break;
-            case "n":
-                n();
-                break;      // Endpath
-            case "q":
-                q();
-                break;      // GSave
-            case "Q":
-                Q();
-                break;      // GRestore
-            case "re":
-                re();
-                break;    // Append rect
-            case "rg":
-                rg();
-                break;    // Set rgb color
-            case "ri":
-                ri();
-                break;    // Set render intent
-            case "RG":
-                RG();
-                break;    // Set stroke rgb color
-            case "s":
-                s();
-                break;      // Closepath
-            case "sc":
-                sc();
-                break;    // Set color in colorspace
-            case "scn":
-                scn();
-                break;  // Set color in colorspace
-            case "sh":
-                sh();
-                break;    // Set shader
-            case "S":
-                S();
-                break;      // Stroke path
-            case "SC":
-                SC();
-                break;    // Set stroke color in colorspace
-            case "SCN":
-                SCN();
-                break;  // Set stroke color in colorspace
-            case "T*":
-                T_x();
-                break;   // Move to next line
-            case "Tc":
-                Tc();
-                break;    // Set character spacing
-            case "Td":
-                Td();
-                break;    // Move relative to current line start
-            case "TD":
-                TD();
-                break;    // Move relative to current line start and set leading to -ty
-            case "Tf":
-                Tf();
-                break;    // Set font
-            case "Tj":
-                Tj();
-                break;    // Show text
-            case "TJ":
-                TJ();
-                break;    // Show text array
-            case "TL":
-                TL();
-                break;    // Set text leading
-            case "Tm":
-                Tm();
-                break;    // Set text matrix
-            case "Tr":
-                Tr();
-                break;    // Set text rendering mode
-            case "Ts":
-                Ts();
-                break;    // Set text rise
-            case "Tw":
-                Tw();
-                break;    // Set text word spacing
-            case "Tz":
-                Tz();
-                break;    // Set text horizontal scale factor
+            case "b": b(); break;      // Closepath, fill, stroke
+            case "b*": b_x(); break;   // Closepath, fill, stroke (EO)
+            case "B": B(); break;      // Fill, stroke
+            case "B*": B_x(); break;   // Fill, stroke (EO)
+            case "BT": BT(); break;    // Begin Text
+            case "BX": BX(); break;
+            case "BI": BI(); break;
+            case "BDC": case "BMC": BDC(); break;
+            case "c": c(); break;      // Curveto
+            case "cm": cm(); break;    // Concat matrix
+            case "cs": cs(); break;    // Set colorspace
+            case "CS": CS(); break;    // Set stroke colorspace
+            case "d": d(); break;      // Set dash
+            case "Do": Do(); break;    // Do xobject
+            case "DP": DP(); break;    // Marked content
+            case "ET": ET(); break;    // End text
+            case "EX": EX(); break;
+            case "EMC": EMC(); break;
+            case "f": case "F": f(); break;     // Fill
+            case "f*": case "F*": f_x(); break; // Fill (EO)
+            case "g": g(); break;      // Set gray
+            case "gs": gs(); break;    // Extended graphics state
+            case "G": G(); break;      // Set stroke gray
+            case "h": h(); break;      // Closepath
+            case "i": i(); break;      // Set flatness
+            case "ID": ID(); break;
+            case "j": j(); break;      // Set linejoin
+            case "J": J(); break;      // Set linecap
+            case "k": k(); break;      // Set cmyk
+            case "K": K(); break;      // Set stroke cmyk
+            case "l": l(); break;      // Lineto
+            case "m": m(); break;      // Moveto
+            case "M": M(); break;      // Set miterlimit
+            case "MP": MP(); break;
+            case "n": n(); break;      // Endpath
+            case "q": q(); break;      // GSave
+            case "Q": Q(); break;      // GRestore
+            case "re": re(); break;    // Append rect
+            case "rg": rg(); break;    // Set rgb color
+            case "ri": ri(); break;    // Set render intent
+            case "RG": RG(); break;    // Set stroke rgb color
+            case "s": s(); break;      // Closepath
+            case "sc": sc(); break;    // Set color in colorspace
+            case "scn": scn(); break;  // Set color in colorspace
+            case "sh": sh(); break;    // Set shader
+            case "S": S(); break;      // Stroke path
+            case "SC": SC(); break;    // Set stroke color in colorspace
+            case "SCN": SCN(); break;  // Set stroke color in colorspace
+            case "T*": T_x(); break;   // Move to next line
+            case "Tc": Tc(); break;    // Set character spacing
+            case "Td": Td(); break;    // Move relative to current line start
+            case "TD": TD(); break;    // Move relative to current line start and set leading to -ty
+            case "Tf": Tf(); break;    // Set font
+            case "Tj": Tj(); break;    // Show text
+            case "TJ": TJ(); break;    // Show text array
+            case "TL": TL(); break;    // Set text leading
+            case "Tm": Tm(); break;    // Set text matrix
+            case "Tr": Tr(); break;    // Set text rendering mode
+            case "Ts": Ts(); break;    // Set text rise
+            case "Tw": Tw(); break;    // Set text word spacing
+            case "Tz": Tz(); break;    // Set text horizontal scale factor
             //case "\'": case "\"": quote(); break;
-            case "v":
-                v();
-                break;      // Curveto
-            case "w":
-                w();
-                break;      // Set linewidth
-            case "W":
-                W();
-                break;      // Set clip
-            case "W*":
-                W_x();
-                break;   // Set clip (EO)
-            case "y":
-                y();
-                break;      // Curveto
-            default:
-                System.err.println("PDFPagePainter: Unknown op: " + op);
+            case "v": v(); break;      // Curveto
+            case "w": w(); break;      // Set linewidth
+            case "W": W(); break;      // Set clip
+            case "W*": W_x(); break;   // Set clip (EO)
+            case "y": y(); break;      // Curveto
+            default: System.err.println("PDFPagePainter: Unknown op: " + op);
         }
     }
 
@@ -381,7 +242,7 @@ public class PDFPagePainter {
      */
     void b()
     {
-        _path.setWinding(Path.WIND_NON_ZERO);
+        _path.setWinding(Shape.WIND_NON_ZERO);
         _path.close();
         fillPath();
         strokePath();
@@ -393,7 +254,7 @@ public class PDFPagePainter {
      */
     void b_x()
     {
-        _path.setWinding(Path.WIND_EVEN_ODD);
+        _path.setWinding(Shape.WIND_EVEN_ODD);
         _path.close();
         fillPath();
         strokePath();
@@ -405,7 +266,7 @@ public class PDFPagePainter {
      */
     void B()
     {
-        _path.setWinding(Path.WIND_NON_ZERO);
+        _path.setWinding(Shape.WIND_NON_ZERO);
         fillPath();
         strokePath();
         didDraw();
@@ -416,7 +277,7 @@ public class PDFPagePainter {
      */
     void B_x()
     {
-        _path.setWinding(Path.WIND_EVEN_ODD);
+        _path.setWinding(Shape.WIND_EVEN_ODD);
         fillPath();
         strokePath();
         didDraw();
@@ -449,9 +310,7 @@ public class PDFPagePainter {
     /**
      * BDC, BMC
      */
-    void BDC()
-    {
-    }
+    void BDC()  { }
 
     /**
      * Curveto.
@@ -503,8 +362,9 @@ public class PDFPagePainter {
      */
     void d()
     {
-        float ld[] = _gstate.lineDash = getFloatArray(_index - 2);
-        if (ld != null && ld.length == 0) _gstate.lineDash = null;
+        float[] ld = _gstate.lineDash = getFloatArray(_index - 2);
+        if (ld.length == 0)
+            _gstate.lineDash = null;
         _gstate.dashPhase = getFloat(_index - 1);
         _gstate.stroke = null;
     }
@@ -526,9 +386,7 @@ public class PDFPagePainter {
     /**
      * Marked content
      */
-    void DP()
-    {
-    }
+    void DP()  { }
 
     /**
      * ET - End text
@@ -541,9 +399,7 @@ public class PDFPagePainter {
     /**
      * EMC
      */
-    void EMC()
-    {
-    }
+    void EMC()  { }
 
     /**
      * EX
@@ -558,7 +414,7 @@ public class PDFPagePainter {
      */
     void f()
     {
-        _path.setWinding(Path.WIND_NON_ZERO);
+        _path.setWinding(Shape.WIND_NON_ZERO);
         fillPath();
         didDraw();
     }
@@ -568,7 +424,7 @@ public class PDFPagePainter {
      */
     void f_x()
     {
-        _path.setWinding(Path.WIND_EVEN_ODD);
+        _path.setWinding(Shape.WIND_EVEN_ODD);
         fillPath();
         didDraw();
     }
@@ -608,7 +464,11 @@ public class PDFPagePainter {
     void h()
     {
         _path.close();
-        _gstate.cp = _path.getCurrentPoint();
+
+        // Reset Gstate current point
+        _gstate.cp = _path.getLastPoint();
+        if (_path.getLastSeg() == Seg.Close && _path.getPointCount() > 0)
+            _gstate.cp = _path.getPoint(0);
     }
 
     /**
@@ -622,9 +482,7 @@ public class PDFPagePainter {
     /**
      * ID
      */
-    void ID()
-    {
-    }
+    void ID()  { }
 
     /**
      * Set linejoin
@@ -681,7 +539,8 @@ public class PDFPagePainter {
     void m()
     {
         getPoint(_index, _gstate.cp);
-        if (_path == null) _path = new Path();
+        if (_path == null)
+            _path = new Path2D();
         _path.moveTo(_gstate.cp.x, _gstate.cp.y);
     }
 
@@ -697,9 +556,7 @@ public class PDFPagePainter {
     /**
      * Marked content point
      */
-    void MP()
-    {
-    }
+    void MP()  { }
 
     /**
      * Endpath
@@ -712,18 +569,12 @@ public class PDFPagePainter {
     /**
      * gsave
      */
-    void q()
-    {
-        _gstate = gsave();
-    }
+    void q()  { _gstate = gsave(); }
 
     /**
      * grestore.
      */
-    void Q()
-    {
-        _gstate = grestore();
-    }
+    void Q()  { _gstate = grestore(); }
 
     /**
      * Append rectangle
@@ -735,7 +586,8 @@ public class PDFPagePainter {
         float w = getFloat(_index - 2), h = getFloat(_index - 1);
 
         // Create new path and add rect and reset current point to start of rect
-        if (_path == null) _path = new Path();
+        if (_path == null)
+            _path = new Path2D();
         _path.moveTo(x, y);
         _path.lineTo(x + w, y);
         _path.lineTo(x + w, y + h);
@@ -934,7 +786,7 @@ public class PDFPagePainter {
      */
     void TJ()
     {
-        List tArray = (List) (getToken(_index - 1).value);
+        List tArray = (List) getToken(_index - 1).value;
         _text.showText(tArray);
     }
 
@@ -1023,7 +875,7 @@ public class PDFPagePainter {
         //     W* f  %eoclip, nonzero-fill
         // Note also, Acrobat considers it an error to have a W not immediately followed by drawing op (f,f*,F,s,S,B,b,n)
         if (_path != null) {
-            _path.setWinding(Path.WIND_NON_ZERO);
+            _path.setWinding(Shape.WIND_NON_ZERO);
             _doClip = true;
         }
     }
@@ -1034,7 +886,7 @@ public class PDFPagePainter {
     void W_x()
     {
         if (_path != null) {
-            _path.setWinding(Path.WIND_EVEN_ODD);
+            _path.setWinding(Shape.WIND_EVEN_ODD);
             _doClip = true;
         }
     }
@@ -1091,10 +943,11 @@ public class PDFPagePainter {
      */
     private float[] getFloatArray(int i)
     {
-        List<PageToken> toks = (List) (getToken(i).value);
-        float ary[] = new float[toks.size()];
-        for (int j = 0, jMax = toks.size(); j < jMax; j++) ary[j] = toks.get(j).floatValue();
-        return ary;
+        List<PageToken> tokens = (List<PageToken>) getToken(i).value;
+        float[] floatArray = new float[tokens.size()];
+        for (int j = 0, jMax = tokens.size(); j < jMax; j++)
+            floatArray[j] = tokens.get(j).floatValue();
+        return floatArray;
     }
 
     /**
@@ -1132,10 +985,11 @@ public class PDFPagePainter {
      */
     private Color getColor(ColorSpace space, int tindex)
     {
-        int cc = space.getNumComponents();
-        float ary[] = new float[cc];
-        for (int i = 0; i < cc; i++) ary[i] = getFloat(tindex - (cc - i));
-        return new Color(space, ary, 1f);
+        int componentCount = space.getNumComponents();
+        float[] colorComponents = new float[componentCount];
+        for (int i = 0; i < componentCount; i++)
+            colorComponents[i] = getFloat(tindex - (componentCount - i));
+        return new Color(space, colorComponents, 1f);
     }
 
     /**
@@ -1144,7 +998,7 @@ public class PDFPagePainter {
      */
     private int parseInlineImage(int tIndex, byte[] pageBytes)
     {
-        Map imageDict = new Hashtable();
+        Map<String,Object> imageDict = new HashMap<>();
         imageDict.put("Subtype", "/Image");
 
         // Get the inline image key/value pairs and create a normal image dictionary
@@ -1169,7 +1023,8 @@ public class PDFPagePainter {
                 Object space = imageDict.get("ColorSpace");
                 ColorSpace imgCSpace = space != null ? PDFColorSpace.getColorspace(space, _page) : null;
                 PDFStream imgStream = new PDFStream(pageBytes, token.getStart(), token.getLength(), imageDict);
-                drawImage(PDFImage.getImage(imgStream, imgCSpace, _pfile));
+                java.awt.Image image = PDFImage.getImage(imgStream, imgCSpace, _pfile);
+                drawImage(image);
                 return i; // return token index
             }
         }
@@ -1181,14 +1036,14 @@ public class PDFPagePainter {
     /**
      * The values for keys in inline images are limited to a small subset of names, numbers, arrays and maybe a dict.
      */
-    private Object getInlineImageValue(PageToken token, byte pageBytes[])
+    private Object getInlineImageValue(PageToken token, byte[] pageBytes)
     {
         // Names (like /DeviceGray or /A85). Names can optionally be abbreviated.
         if (token.type == PageToken.PDFNameToken) {
             String abbrev = token.getName();
-            for (int i = 0, n = _inline_image_value_abbreviations.length; i < n; ++i) {
-                if (_inline_image_value_abbreviations[i][0].equals(abbrev))
-                    return '/' + _inline_image_value_abbreviations[i][1];
+            for (String[] inlineImageValueAbbreviation : _inline_image_value_abbreviations) {
+                if (inlineImageValueAbbreviation[0].equals(abbrev))
+                    return '/' + inlineImageValueAbbreviation[1];
             }
             return '/' + abbrev;  // not found, so it's not an abbreviation.  We assume it's valid
         }
@@ -1200,9 +1055,10 @@ public class PDFPagePainter {
         // An array of numbers or names (for Filter or Decode)
         if (token.type == PageToken.PDFArrayToken) {
             List tokenarray = (List) token.value;
-            List newarray = new ArrayList(tokenarray.size());
-            for (int j = 0, jMax = tokenarray.size(); j < jMax; ++j)     // recurse
-                newarray.add(getInlineImageValue((PageToken) tokenarray.get(j), pageBytes));
+            List newarray = new ArrayList<>(tokenarray.size());
+            // recurse
+            for (Object o : tokenarray)
+                newarray.add(getInlineImageValue((PageToken) o, pageBytes));
             return newarray;
         }
 
@@ -1220,23 +1076,24 @@ public class PDFPagePainter {
     /**
      * map for translating inline image abbreviations into standard tokens
      */
-    static final String _inline_image_key_abbreviations[][] = {
+    static final String[][] _inline_image_key_abbreviations = {
             {"BPC", "BitsPerComponent"}, {"CS", "ColorSpace"}, {"D", "Decode"}, {"DP", "DecodeParms"},
-            {"F", "Filter"}, {"H", "Height"}, {"IM", "ImageMask"}, {"I", "Interpolate"}, {"W", "Width"}};
+            {"F", "Filter"}, {"H", "Height"}, {"IM", "ImageMask"}, {"I", "Interpolate"}, {"W", "Width"}
+    };
 
     /**
      * Looks up an abbreviation in the above map.
      */
     private String translateInlineImageKey(String abbreviation)
     {
-        for (int i = 0, n = _inline_image_key_abbreviations.length; i < n; ++i) {
-            if (_inline_image_key_abbreviations[i][0].equals(abbreviation))
-                return _inline_image_key_abbreviations[i][1];
+        for (String[] inlineImageKeyAbbreviation : _inline_image_key_abbreviations) {
+            if (inlineImageKeyAbbreviation[0].equals(abbreviation))
+                return inlineImageKeyAbbreviation[1];
         }
         return abbreviation; // not found, so it's not an abbreviation
     }
 
-    static final String _inline_image_value_abbreviations[][] = {
+    static final String[][] _inline_image_value_abbreviations = {
             {"G", "DeviceGray"}, {"RGB", "DeviceRGB"}, {"CMYK", "DeviceCMYK"}, {"I", "Indexed"}, {"AHx", "ASCIIHexDecode"},
             {"A85", "ASCII85Decode"}, {"LZW", "LZWDecode"}, {"Fl", "FlateDecode"}, {"RL", "RunLengthDecode"},
             {"CCF", "CCITTFaxDecode"}, {"DCT", "DCTDecode"}
@@ -1349,7 +1206,7 @@ public class PDFPagePainter {
 
             // Transparency - whether to treat alpha values as shape or transparency
             else if (key.equals("AIS")) {
-                boolean ais = ((Boolean) val).booleanValue();
+                boolean ais = (Boolean) val;
                 if (ais != gs.alphaIsShape) gs.alphaIsShape = ais; //alphaChanged = true;
             }
 
