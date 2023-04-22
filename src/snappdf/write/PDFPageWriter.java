@@ -81,7 +81,7 @@ public class PDFPageWriter extends PDFWriterBase {
     public void setFillColor(Color aColor)
     {
         // If value already set, just return
-        if (SnapUtils.equals(aColor, _gstack.getFillColor())) return;
+        if (Objects.equals(aColor, _gstack.getFillColor())) return;
 
         // Set color in gstate and write it. Set opacity separate, since there is no set-rgba op
         _gstack.setFillColor(aColor);
@@ -95,7 +95,7 @@ public class PDFPageWriter extends PDFWriterBase {
     public void setStrokeColor(Color aColor)
     {
         // If value already set, just return
-        if (SnapUtils.equals(aColor, _gstack.getStrokeColor())) return;
+        if (Objects.equals(aColor, _gstack.getStrokeColor())) return;
 
         // Set color in gstate and write it. Set opacity separate, since there is no set-rgba op
         _gstack.setStrokeColor(aColor);

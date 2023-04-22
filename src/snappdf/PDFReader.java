@@ -495,7 +495,7 @@ public class PDFReader extends Parser {
                 if (parser.getChar() == '\r') parser.eatChar();
                 if (parser.getChar() == '\n') parser.eatChar();
                 int start = parser.getCharIndex();
-                int len = SnapUtils.intValue(lenObj);
+                int len = Convert.intValue(lenObj);
                 byte sbytes[] = parser.getBytes(start, start + len);
                 _part = new PDFStream(sbytes, dict);
                 parser.setCharIndex(start + len);

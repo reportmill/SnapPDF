@@ -5,7 +5,7 @@ import snap.text.TextBoxLine;
 import snap.text.TextBoxRun;
 import snap.text.TextStyle;
 import snappdf.PDFWriter;
-import snap.util.SnapUtils;
+import java.util.Objects;
 
 /**
  * PDFWriter utility methods for writing text. This would be a simple matter of using the PDF set-font and show-text
@@ -120,7 +120,7 @@ public class PDFWriterText {
         }
 
         // If run outline has changed, configure text rendering mode
-        if (!SnapUtils.equals(style.getBorder(), aLastRun == null ? null : lastStyle.getBorder())) {
+        if (!Objects.equals(style.getBorder(), aLastRun == null ? null : lastStyle.getBorder())) {
             Border border = style.getBorder();
             if (border == null)
                 pPage.appendln("0 Tr");
