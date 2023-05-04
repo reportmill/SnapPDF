@@ -67,7 +67,7 @@ public class PDFEnvSwing extends PDFEnv {
         int height = (int) Math.round(bounds.height);
 
         // Create PDF painter that renders into an image
-        Image img = Image.get(width, height, false);
+        Image img = Image.getImageForSize(width, height, false);
         Painter ipntr = img.getPainter();
         ipntr.setColor(Color.WHITE);
         ipntr.fillRect(0, 0, width, height);

@@ -256,7 +256,7 @@ public class PDFImage {
         byte dctbytes[] = imageStream.decodeStream(imageStream.numFilters() - 1);
 
         // Load image and return AWT image (was java.awt.Toolkit.getDefaultToolkit().createImage(bytes))
-        return (Image) snap.gfx.Image.get(dctbytes).getNative();
+        return (Image) snap.gfx.Image.getImageForSource(dctbytes).getNative();
     }
 
 }

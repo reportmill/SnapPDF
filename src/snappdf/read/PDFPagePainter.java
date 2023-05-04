@@ -1133,7 +1133,7 @@ public class PDFPagePainter {
         _page.pushResources(aPattern.getResources());
 
         // Create image for pattern
-        Image img = Image.get(width, height, true);
+        Image img = Image.getImageForSize(width, height, true);
         Painter ipntr = img.getPainter();
 
         // Create PagePainter with pattern bounds and transform
