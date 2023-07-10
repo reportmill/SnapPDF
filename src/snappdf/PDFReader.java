@@ -410,7 +410,7 @@ public class PDFReader extends Parser {
     /**
      * Override to suppress Parse exception.
      */
-    protected void parseFailed(ParseRule aRule, ParseHandler aHandler)
+    protected void parseFailed(ParseRule aRule, ParseHandler<?> aHandler)
     {
         if (aHandler != null) aHandler.reset();
         //throw new ParseException(this, aRule);
