@@ -62,7 +62,8 @@ public class PDFWriterText {
             // Get line end points
             double x0 = run.getX(), y0 = line.getBaseline() - line.getUnderlineY();
             double x1 = run.getMaxX();
-            if (run.getEnd() == line.getEndCharIndex()) x1 = line.getX() + line.getWidthNoWhiteSpace();
+            if (run.getEndCharIndex() == line.getEndCharIndex())
+                x1 = line.getX() + line.getWidthNoWhiteSpace();
             pwriter.moveTo(x0, y0);
             pwriter.lineTo(x1, y0);
             pwriter.appendln("S");
