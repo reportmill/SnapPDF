@@ -1,9 +1,6 @@
 package snappdf.write;
 import snap.gfx.*;
-import snap.text.TextBox;
-import snap.text.TextBoxLine;
-import snap.text.TextBoxRun;
-import snap.text.TextStyle;
+import snap.text.*;
 import snappdf.PDFWriter;
 import java.util.Objects;
 
@@ -38,8 +35,8 @@ public class PDFWriterText {
         pwriter.appendln("BT");
 
         // Iterate over lines and write
-        TextBoxRun lastRun = null;
-        for (TextBoxLine line : aTextBox.getLines()) {
+        TextRun lastRun = null;
+        for (TextLine line : aTextBox.getLines()) {
             if (line.getY() > aTextBox.getHeight()) break;   // If line below text, bail
             lastRun = writeLine(aWriter, aTextBox, line, lastRun);
         }
@@ -51,11 +48,11 @@ public class PDFWriterText {
         pwriter.grestore();
 
         // If any underlining in TextBox, add underlining ops
-        if (aTextBox.isUnderlined()) for (TextBoxRun run : aTextBox.getUnderlineRuns(null)) {
+        if (aTextBox.isUnderlined()) for (TextRun run : aTextBox.getUnderlineRuns(null)) {
 
             // Set stroke and stroke width
             TextStyle style = run.getStyle();
-            TextBoxLine line = run.getLine();
+            TextLine line = run.getLine();
             pwriter.setStrokeColor(style.getColor());
             pwriter.setStrokeWidth(line.getUnderlineStroke());
 
@@ -71,13 +68,13 @@ public class PDFWriterText {
     }
 
     /**
-     * Writes the given TextBoxLine to pdf.
+     * Writes the given TextLine to pdf.
      */
-    public static TextBoxRun writeLine(PDFWriter aWriter, TextBox aTextBox, TextBoxLine aLine, TextBoxRun aLastRun)
+    public static TextRun writeLine(PDFWriter aWriter, TextBox aTextBox, TextLine aLine, TextRun aLastRun)
     {
         // Iterate over line runs and writeRun()
-        TextBoxRun lastRun = aLastRun;
-        for (TextBoxRun run : aLine.getRuns()) {
+        TextRun lastRun = aLastRun;
+        for (TextRun run : aLine.getRuns()) {
             writeRun(aWriter, aTextBox, aLine, run, lastRun);
             lastRun = run;
         }
@@ -89,7 +86,7 @@ public class PDFWriterText {
     /**
      * Writes the given TextBoxRun to pdf.
      */
-    public static void writeRun(PDFWriter aWriter, TextBox aText, TextBoxLine aLine, TextBoxRun aRun, TextBoxRun aLastRun)
+    public static void writeRun(PDFWriter aWriter, TextBox aText, TextLine aLine, TextRun aRun, TextRun aLastRun)
     {
         // Get pdf page
         PDFPageWriter pPage = aWriter.getPageWriter();
