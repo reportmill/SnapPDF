@@ -37,8 +37,17 @@ public class PDFWriterText {
         // Iterate over lines and write
         TextRun lastRun = null;
         for (TextLine line : aTextBox.getLines()) {
-            if (line.getY() > aTextBox.getHeight()) break;   // If line below text, bail
-            lastRun = writeLine(aWriter, aTextBox, line, lastRun);
+
+            // If line below text, bail
+            if (line.getY() > aTextBox.getHeight())
+                break;
+
+            // Iterate over runs and write
+            TextRun[] runs = line.getRuns();
+            for (TextRun run : runs) {
+                writeRun(aWriter, aTextBox, line, run, lastRun);
+                lastRun = run;
+            }
         }
 
         // End Text
@@ -48,45 +57,37 @@ public class PDFWriterText {
         pwriter.grestore();
 
         // If any underlining in TextBox, add underlining ops
-        if (aTextBox.isUnderlined()) for (TextRun run : aTextBox.getUnderlineRuns(null)) {
+        if (aTextBox.isUnderlined()) {
 
-            // Set stroke and stroke width
-            TextStyle style = run.getStyle();
-            TextLine line = run.getLine();
-            pwriter.setStrokeColor(style.getColor());
-            pwriter.setStrokeWidth(line.getUnderlineStroke());
+            // Get underline runs
+            TextRun[] underlineRuns = aTextBox.getUnderlineRuns(null);
 
-            // Get line end points
-            double x0 = run.getX(), y0 = line.getBaseline() - line.getUnderlineY();
-            double x1 = run.getMaxX();
-            if (run.getEndCharIndex() == line.getEndCharIndex())
-                x1 = line.getX() + line.getWidthNoWhiteSpace();
-            pwriter.moveTo(x0, y0);
-            pwriter.lineTo(x1, y0);
-            pwriter.appendln("S");
+            // Iterate over underline runs
+            for (TextRun run : underlineRuns) {
+
+                // Set stroke and stroke width
+                TextStyle style = run.getStyle();
+                TextLine line = run.getLine();
+                pwriter.setStrokeColor(style.getColor());
+                pwriter.setStrokeWidth(line.getUnderlineStroke());
+
+                // Get line end points
+                double x0 = line.getTextX() + run.getX();
+                double y0 = line.getTextBaseline() - line.getUnderlineY();
+                double x1 = line.getTextX() + run.getMaxX();
+                if (run.getEndCharIndex() == line.getEndCharIndex())
+                    x1 = line.getTextX() + line.getWidthNoWhiteSpace();
+                pwriter.moveTo(x0, y0);
+                pwriter.lineTo(x1, y0);
+                pwriter.appendln("S");
+            }
         }
-    }
-
-    /**
-     * Writes the given TextLine to pdf.
-     */
-    public static TextRun writeLine(PDFWriter aWriter, TextBox aTextBox, TextLine aLine, TextRun aLastRun)
-    {
-        // Iterate over line runs and writeRun()
-        TextRun lastRun = aLastRun;
-        for (TextRun run : aLine.getRuns()) {
-            writeRun(aWriter, aTextBox, aLine, run, lastRun);
-            lastRun = run;
-        }
-
-        // Return last run
-        return lastRun;
     }
 
     /**
      * Writes the given TextBoxRun to pdf.
      */
-    public static void writeRun(PDFWriter aWriter, TextBox aText, TextLine aLine, TextRun aRun, TextRun aLastRun)
+    public static void writeRun(PDFWriter aWriter, TextBox aTextBox, TextLine aLine, TextRun aRun, TextRun aLastRun)
     {
         // Get pdf page
         PDFPageWriter pPage = aWriter.getPageWriter();
@@ -99,11 +100,11 @@ public class PDFWriterText {
 
         // Get last x & y
         double lastX = aLastRun == null ? 0 : aLastRun.getX();
-        double lastY = aLastRun == null ? aText.getHeight() : aLastRun.getLine().getBaseline();
+        double lastY = aLastRun == null ? aTextBox.getHeight() : aLastRun.getLine().getTextBaseline();
 
         // Set the current text point
-        double runX = aRun.getX() - lastX;
-        double runY = lastY - aLine.getBaseline(); // Flip y coordinate
+        double runX = aLine.getTextX() + aRun.getX() - lastX;
+        double runY = lastY - aLine.getTextBaseline(); // Flip y coordinate
         pPage.append(runX).append(' ').append(runY).appendln(" Td");
 
         // Get current run font, whether FontChanged and current font entry (base font entry for font, if font has changed)
