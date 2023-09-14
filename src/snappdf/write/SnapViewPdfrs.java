@@ -29,7 +29,7 @@ public class SnapViewPdfrs {
         protected void writeView(T aTextView, PDFWriter aWriter)
         {
             super.writeView(aTextView, aWriter);
-            PDFWriterText.writeText(aWriter, aTextView.getTextBox());
+            PDFWriterText.writeText(aWriter, aTextView.getTextBlock());
         }
     }
 

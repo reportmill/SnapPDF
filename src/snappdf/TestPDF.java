@@ -33,7 +33,7 @@ public class TestPDF {
         page.addChild(textView);
 
         // Create/set RichText doc
-        TextBlock richText = textView.getTextBox();
+        TextBlock richText = textView.getTextBlock();
         richText.addChars("Why is the world in love again, why are they marching hand in hand?");
         richText.setStyleValue(new Font("Arial Bold", 24));
         richText.setStyleValue(TextStyle.UNDERLINE_KEY, 1, 20, 30);
