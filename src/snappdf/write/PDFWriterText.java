@@ -226,7 +226,7 @@ public class PDFWriterText {
         }
 
         // If run is hyphenated, add hyphen
-        if (aLine.isHyphenated() && aRun == aLine.getRunLast()) pPage.append('-');
+        if (aLine.isHyphenated() && aRun == aLine.getLastRun()) pPage.append('-');
 
         // End last text show block
         pPage.appendln(") Tj");
