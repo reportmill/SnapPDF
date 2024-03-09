@@ -489,22 +489,29 @@ public class PDFReader extends Parser {
         {
             // Handle Stream
             if (anId == "stream") {
+
+                // Get stream length
                 PDFReader parser = (PDFReader) aNode.getParser();
-                Map dict = (Map) getPart();
+                Map<?,?> dict = (Map<?,?>) getPart();
                 Object lenObj = parser.getXRefObj(dict.get("Length"));
-                if (parser.getChar() == '\r') parser.eatChar();
-                if (parser.getChar() == '\n') parser.eatChar();
-                int start = parser.getCharIndex();
-                int len = Convert.intValue(lenObj);
-                byte sbytes[] = parser.getBytes(start, start + len);
-                _part = new PDFStream(sbytes, dict);
-                parser.setCharIndex(start + len);
+                int streamLength = Convert.intValue(lenObj);
+
+                // Get stream start index (eat optional newline after 'stream')
+                Tokenizer tokenizer = parser.getTokenizer();
+                if (tokenizer.getChar() == '\r') tokenizer.eatChar();
+                if (tokenizer.getChar() == '\n') tokenizer.eatChar();
+                int streamStartIndex = parser.getCharIndex();
+
+                // Get stream bytes and stream and reset parser char index
+                byte[] streamBytes = parser.getBytes(streamStartIndex, streamStartIndex + streamLength);
+                _part = new PDFStream(streamBytes, dict);
+                parser.setCharIndex(streamStartIndex + streamLength);
             }
 
             // Handle endstream
             else if (anId == "endstream") ;
 
-                // Handle anything else
+            // Handle anything else
             else _part = aNode.getCustomNode();
         }
 
