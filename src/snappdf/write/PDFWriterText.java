@@ -76,7 +76,7 @@ public class PDFWriterText {
                 double y0 = line.getTextBaseline() - line.getUnderlineY();
                 double x1 = line.getTextX() + run.getMaxX();
                 if (run.getEndCharIndex() == line.getEndCharIndex())
-                    x1 = line.getTextX() + line.getWidthNoWhiteSpace();
+                    x1 -= run.getTrailingWhitespaceWidth();
                 pwriter.moveTo(x0, y0);
                 pwriter.lineTo(x1, y0);
                 pwriter.appendln("S");
