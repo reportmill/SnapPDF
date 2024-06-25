@@ -183,7 +183,7 @@ public class XRefView extends ViewOwner {
         _imageView = getView("ImageView", ImageView.class); //_imageView.getParent().setPrefSize(820,940);
         _imageView.setFill(Color.WHITE);
         _imageView.setBorder(Color.BLACK, 1);
-        enableEvents(_imageView, MouseRelease);
+        _imageView.addEventHandler(e -> imageViewDidMouseRelease());
 
         // Get/configure BrowserView
         _browser = getView("BrowserView", BrowserView.class);
@@ -208,7 +208,7 @@ public class XRefView extends ViewOwner {
         tabView.addTab("Text", ptextPaneUI);
 
         // Set PFile
-        enableEvents(getUI(), DragDrop);
+        getUI().addEventHandler(this::handleDragDropEvent, DragDrop);
     }
 
     /**
@@ -222,37 +222,38 @@ public class XRefView extends ViewOwner {
     }
 
     /**
-     * RespoindUI.
+     * Called when UI gets DragDrop event.
      */
-    protected void respondUI(ViewEvent anEvent)
+    private void handleDragDropEvent(ViewEvent anEvent)
     {
         // If no file, just bail
         if (_pfile == null) return;
 
-        // Handle ImageView
-        if (anEvent.equals("ImageView"))
-            setPage((getPage() + 1) % getPageCount());
-
         // Handle DragDrop
-        if (anEvent.isDragDrop()) {
-            anEvent.acceptDrag();
-            ClipboardData cdata = anEvent.getClipboard().getFiles().get(0);
-            if (!cdata.isLoaded()) {
-                cdata.addLoadListener(cd -> droppedClipboardFinishedLoading(cdata));
-                anEvent.dropComplete();
-                return;
-            }
-            WebURL url = cdata.getSourceURL();
-            setSource(url);
+        anEvent.acceptDrag();
+        ClipboardData cdata = anEvent.getClipboard().getFiles().get(0);
+        if (!cdata.isLoaded()) {
+            cdata.addLoadListener(cd -> droppedClipboardFinishedLoading(cdata));
             anEvent.dropComplete();
+            return;
         }
+        WebURL url = cdata.getSourceURL();
+        setSource(url);
+        anEvent.dropComplete();
     }
 
-    void droppedClipboardFinishedLoading(ClipboardData aCD)
+    private void droppedClipboardFinishedLoading(ClipboardData aCD)
     {
-        byte bytes[] = aCD.getBytes();
+        byte[] bytes = aCD.getBytes();
         setName(aCD.getName());
         setSource(bytes);
+    }
+
+    private void imageViewDidMouseRelease()
+    {
+        if (_pfile == null) return;
+        int nextPageIndex = (getPage() + 1) % getPageCount();
+        setPage(nextPageIndex);
     }
 
     /**
