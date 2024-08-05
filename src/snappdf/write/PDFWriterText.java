@@ -66,7 +66,7 @@ public class PDFWriterText {
             for (TextRun run : underlineRuns) {
 
                 // Set stroke and stroke width
-                TextStyle style = run.getStyle();
+                TextStyle style = run.getTextStyle();
                 TextLine line = run.getLine();
                 pwriter.setStrokeColor(style.getColor());
                 pwriter.setStrokeWidth(line.getUnderlineStroke());
@@ -91,8 +91,8 @@ public class PDFWriterText {
     {
         // Get pdf page
         PDFPageWriter pPage = aWriter.getPageWriter();
-        TextStyle style = aRun.getStyle();
-        TextStyle lastStyle = aLastRun != null ? aLastRun.getStyle() : null;
+        TextStyle style = aRun.getTextStyle();
+        TextStyle lastStyle = aLastRun != null ? aLastRun.getTextStyle() : null;
 
         // If colorChanged, have writer setFillColor
         if (lastStyle == null || !lastStyle.getColor().equals(style.getColor()))
