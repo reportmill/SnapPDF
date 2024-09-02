@@ -126,7 +126,7 @@ public class XRefView extends ViewOwner {
     {
         // For TeaVM
     /*TextArea text = new TextArea(); text.setFont(new Font("Arial", 92)); text.setFill(Color.WHITE);
-    text.setPadding(40,40,40,40); text.setTextFill(Color.GRAY);
+    text.setPadding(40,40,40,40); text.setTextColor(Color.GRAY);
     text.setAlign(Pos.CENTER); text.setSize(612,792); text.setWrapText(true);
     String str = "Render\nnot yet available"; text.setText(str);
     Image img = ViewUtils.getImage(text);*/
@@ -174,7 +174,7 @@ public class XRefView extends ViewOwner {
         // Configure NameLabel
         Label label = getView("NameLabel", Label.class);
         label.setEffect(new ShadowEffect());
-        label.setTextFill(Color.WHITE);
+        label.setTextColor(Color.WHITE);
         label.setText("PDF Inspector: Sample.pdf");
         label.getParent().setFill(new Color(.9));
         label.getParent().setBorder(Color.BLACK, 1);
