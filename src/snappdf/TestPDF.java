@@ -35,8 +35,8 @@ public class TestPDF {
         // Create/set RichText doc
         TextBlock richText = textView.getTextBlock();
         richText.addChars("Why is the world in love again, why are they marching hand in hand?");
-        richText.setStyleValue(new Font("Arial Bold", 24));
-        richText.setStyleValue(TextStyle.UNDERLINE_KEY, 1, 20, 30);
+        richText.setTextStyleValue(TextStyle.Font_Prop, new Font("Arial Bold", 24), 0, richText.length());
+        richText.setTextStyleValue(TextStyle.UNDERLINE_KEY, 1, 20, 30);
 
         // Add Image
         ImageView imageView = new ImageView("/Users/jeff/DesktopStack/Images/Daisy.jpg");
