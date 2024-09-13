@@ -8,14 +8,14 @@
   </RowView>
   <TabView name="TabView" GrowHeight="true">
     <ScrollView title="Graphics">
-      <Box FillWidth="false" FillHeight="false">
+      <BoxView FillWidth="false" FillHeight="false">
         <ImageView name="ImageView" />
-      </Box>
+      </BoxView>
     </ScrollView>
     <SplitView name="BrowserSplit" Vertical="true" title="Structure">
-      <Box Padding="8,4,4,4" FillWidth="true" FillHeight="true">
+      <BoxView Padding="8,4,4,4" FillWidth="true" FillHeight="true">
         <BrowserView name="BrowserView" PrefHeight="360" />
-      </Box>
+      </BoxView>
     </SplitView>
   </TabView>
 </ColView>
