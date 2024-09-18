@@ -1,20 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ColView FillWidth="true">
-  <font name="Arial" size="12" />
-  <RowView Padding="5,16,5,16" PrefHeight="50">
-    <Label Name="NameLabel">
-      <font name="Arial Bold" size="32" />
-    </Label>
+<ColView Font="Arial 12" FillWidth="true">
+  <RowView PrefHeight="50" Padding="5,16,5,16">
+    <Label Name="NameLabel" Font="Arial Bold 32" />
   </RowView>
-  <TabView name="TabView" GrowHeight="true">
+  <TabView Name="TabView" GrowHeight="true">
     <ScrollView title="Graphics">
-      <BoxView FillWidth="false" FillHeight="false">
-        <ImageView name="ImageView" />
+      <BoxView>
+        <ImageView Name="ImageView" />
       </BoxView>
     </ScrollView>
-    <SplitView name="BrowserSplit" Vertical="true" title="Structure">
+    <SplitView Name="BrowserSplit" Vertical="true" title="Structure">
       <BoxView Padding="8,4,4,4" FillWidth="true" FillHeight="true">
-        <BrowserView name="BrowserView" PrefHeight="360" />
+        <BrowserView Name="BrowserView" PrefHeight="360" />
       </BoxView>
     </SplitView>
   </TabView>
