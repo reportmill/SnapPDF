@@ -399,8 +399,8 @@ public class PDFReader extends Parser {
             protected void skipWhiteSpace()
             {
                 super.skipWhiteSpace();
-                if (hasChar() && getChar() == '%' && getCharIndex() > 0) {
-                    while (getChar() != '\n' && hasChar()) eatChar();
+                if (hasChar() && nextChar() == '%' && getCharIndex() > 0) {
+                    eatCharsTillLineEnd();
                     skipWhiteSpace();
                 }
             }
@@ -498,8 +498,8 @@ public class PDFReader extends Parser {
 
                 // Get stream start index (eat optional newline after 'stream')
                 Tokenizer tokenizer = parser.getTokenizer();
-                if (tokenizer.getChar() == '\r') tokenizer.eatChar();
-                if (tokenizer.getChar() == '\n') tokenizer.eatChar();
+                if (tokenizer.nextChar() == '\r') tokenizer.eatChar();
+                if (tokenizer.nextChar() == '\n') tokenizer.eatChar();
                 int streamStartIndex = parser.getCharIndex();
 
                 // Get stream bytes and stream and reset parser char index
