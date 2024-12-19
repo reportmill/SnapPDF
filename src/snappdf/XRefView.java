@@ -5,6 +5,7 @@ package snappdf;
 import java.util.*;
 
 import snap.gfx.*;
+import snap.util.ListUtils;
 import snap.util.SnapUtils;
 import snap.view.*;
 import snap.viewx.TextPane;
@@ -109,8 +110,8 @@ public class XRefView extends ViewOwner {
         resetImage();
 
         // Set Browser items
-        Object items[] = new PDFResolver().getChildren(_pfile);
-        _browser.setItems(items);
+        List<Object> items = new PDFResolver().getChildren(_pfile);
+        _browser.setItemsList(items);
         _browser.setSelIndex(0);
 
         // Set Text
@@ -434,7 +435,7 @@ public class XRefView extends ViewOwner {
         /**
          * Returns the children.
          */
-        public Object[] getChildren(Object aParent)
+        public List<Object> getChildren(Object aParent)
         {
             Object parent = aParent instanceof TreeNode ? ((TreeNode) aParent).content : aParent;
             if (parent instanceof PDFXEntry) {
@@ -458,11 +459,11 @@ public class XRefView extends ViewOwner {
                 TreeNode pages = getNode(pfile, pagesDict, "Pages Dict (" + pagesXRef + ')');
 
                 // Add to new nodes list
-                List nodes = new ArrayList();
+                List<Object> nodes = new ArrayList<>();
                 Collections.addAll(nodes, info, catalog, pages);
 
                 // Create pages nodes and add to nodes list
-                List<PDFXEntry> pagesArray = (List) pagesDict.get("Kids");
+                List<PDFXEntry> pagesArray = (List<PDFXEntry>) pagesDict.get("Kids");
                 for (int i = 0; i < pagesArray.size(); i++) {
                     PDFXEntry page = pagesArray.get(i);
                     TreeNode node = getNode(pfile, page, "Page " + (i + 1) + " (" + page + ')');
@@ -474,19 +475,19 @@ public class XRefView extends ViewOwner {
                 Collections.addAll(nodes, pfile.getXRefTable(), trailer);
 
                 // Return nodes array
-                return nodes.toArray();
+                return nodes;
             }
 
             // Handle XRef Table
             if (aParent instanceof PDFXTable) {
                 PDFXTable xtable = (PDFXTable) aParent;
-                return xtable.getXRefs().toArray();
+                return (List<Object>) (List<?>) xtable.getXRefs();
             }
 
             // Handle Map
             if (parent instanceof Map) {
                 Map<String, Object> map = (Map) parent;
-                TreeNode nodes[] = new TreeNode[map.size()];
+                TreeNode[] nodes = new TreeNode[map.size()];
                 List<String> keys = new ArrayList(map.keySet());
                 for (int i = 0; i < keys.size(); i++) {
                     String key = keys.get(i);
@@ -495,18 +496,13 @@ public class XRefView extends ViewOwner {
                             getTypeString(obj) : '(' + String.valueOf(obj) + ')';
                     nodes[i] = getNode(aParent, obj, '/' + key + ' ' + str);
                 }
-                return nodes;
+                return Arrays.asList(nodes);
             }
 
             // Handle List
             if (parent instanceof List) {
-                List list = (List) parent;
-                TreeNode nodes[] = new TreeNode[list.size()];
-                for (int i = 0; i < list.size(); i++) {
-                    Object obj = list.get(i);
-                    nodes[i] = getNode(aParent, obj, getTypeString(obj));
-                }
-                return nodes;
+                List<Object> list = (List<Object>) parent;
+                return ListUtils.map(list, obj -> getNode(aParent, obj, getTypeString(obj)));
             }
 
             // Return null, since parent type not supported
