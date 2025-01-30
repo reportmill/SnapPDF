@@ -70,7 +70,7 @@ public class PDFReader extends Parser {
     public void readFile()
     {
         // Get version
-        ParseRule versRule = getRule("Version");
+        ParseRule versRule = getRuleForName("Version");
         String versStr = parse(versRule).getString();
         _pfile.setVersionString(versStr);
 
@@ -322,21 +322,21 @@ public class PDFReader extends Parser {
      */
     protected ParseRule getIntegerRule()
     {
-        return _ir != null ? _ir : (_ir = getRule("Integer"));
+        return _ir != null ? _ir : (_ir = getRuleForName("Integer"));
     }
 
     ParseRule _ir;
 
     protected ParseRule getObjectRule()
     {
-        return _or != null ? _or : (_or = getRule("Object"));
+        return _or != null ? _or : (_or = getRuleForName("Object"));
     }
 
     ParseRule _or;
 
     protected ParseRule getObjectDefRule()
     {
-        return _odr != null ? _odr : (_odr = getRule("ObjectDef"));
+        return _odr != null ? _odr : (_odr = getRuleForName("ObjectDef"));
     }
 
     ParseRule _odr;
@@ -362,32 +362,33 @@ public class PDFReader extends Parser {
     }
 
     /**
-     * Creates the rule.
+     * Creates the grammar.
      */
-    protected ParseRule createRule()
+    @Override
+    protected Grammar createGrammar()
     {
-        if (_sharedRule != null) return _sharedRule;
-        return _sharedRule = super.createRule();
+        if (_sharedGrammar != null) return _sharedGrammar;
+        return _sharedGrammar = super.createGrammar();
     }
 
-    static ParseRule _sharedRule;
+    static Grammar _sharedGrammar;
 
     /**
      * Install handlers.
      */
-    protected void initRule()
+    protected void initGrammar()
     {
-        getRule("Dictionary").setHandler(new DictionaryHandler());
-        getRule("Array").setHandler(new ArrayHandler());
-        getRule("Object").setHandler(new ObjectHandler());
-        getRule("ObjectRef").setHandler(new ObjectRefHandler());
-        getRule("ObjectDef").setHandler(new ObjectDefHandler());
-        getRule("Leaf").setHandler(new LeafHandler());
-        getRule("Integer").setHandler(new IntegerHandler());
-        getRule("Real").setHandler(new RealHandler());
-        getRule("Name").setHandler(new NameHandler());
-        getRule("String").setHandler(new StringHandler());
-        getRule("HexString").setHandler(new HexStringHandler());
+        getRuleForName("Dictionary").setHandler(new DictionaryHandler());
+        getRuleForName("Array").setHandler(new ArrayHandler());
+        getRuleForName("Object").setHandler(new ObjectHandler());
+        getRuleForName("ObjectRef").setHandler(new ObjectRefHandler());
+        getRuleForName("ObjectDef").setHandler(new ObjectDefHandler());
+        getRuleForName("Leaf").setHandler(new LeafHandler());
+        getRuleForName("Integer").setHandler(new IntegerHandler());
+        getRuleForName("Real").setHandler(new RealHandler());
+        getRuleForName("Name").setHandler(new NameHandler());
+        getRuleForName("String").setHandler(new StringHandler());
+        getRuleForName("HexString").setHandler(new HexStringHandler());
     }
 
     /**
