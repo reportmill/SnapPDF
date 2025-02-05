@@ -9,7 +9,7 @@ import snappdf.read.PDFDictUtils;
 import snap.util.*;
 
 /**
- * A custom class.
+ * This parser subclass parses PDF files.
  */
 public class PDFReader extends Parser {
 
@@ -17,7 +17,7 @@ public class PDFReader extends Parser {
     PDFFile _pfile;
 
     // The bytes
-    byte _bytes[];
+    byte[] _bytes;
 
     // The XRef start
     int _xrefStart;
@@ -25,11 +25,14 @@ public class PDFReader extends Parser {
     /**
      * Creates a new PDFReader.
      */
-    public PDFReader(PDFFile aPF, byte theBytes[])
+    public PDFReader(PDFFile aPF, byte[] theBytes)
     {
         _pfile = aPF;
         _bytes = theBytes;
         setInput(new ByteCharSequence());
+
+        // !!! Tokenizer used to skip comments in addition to whitespace by overriding old Tokenizer.skipWhitespace() method !!!
+        //getGrammar().addRule("Skip { %.* }");
     }
 
     /**
@@ -392,23 +395,6 @@ public class PDFReader extends Parser {
     }
 
     /**
-     * Override to provide tokenizer that skips whitespace and comments.
-     */
-    protected Tokenizer createTokenizer()
-    {
-        return new Tokenizer() {
-            protected void skipWhiteSpace()
-            {
-                super.skipWhiteSpace();
-                if (hasChar() && nextChar() == '%' && getCharIndex() > 0) {
-                    eatCharsTillLineEnd();
-                    skipWhiteSpace();
-                }
-            }
-        };
-    }
-
-    /**
      * Override to suppress Parse exception.
      */
     protected void parseFailed(ParseRule aRule, ParseHandler<?> aHandler)
@@ -685,7 +671,7 @@ public class PDFReader extends Parser {
         {
             // Get parser and parser bytes
             PDFReader parser = (PDFReader) aNode.getParser();
-            byte bytes[] = parser.getBytes();
+            byte[] bytes = parser.getBytes();
 
             // Get start/end of string - increment end util final close paren
             int start = parser.getCharIndex() - 1, end = start + 1, nested = 1;
