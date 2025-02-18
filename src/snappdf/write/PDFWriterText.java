@@ -99,7 +99,7 @@ public class PDFWriterText {
             pPage.setFillColor(aRun.getColor());
 
         // Get last x & y
-        double lastX = aLastRun == null ? 0 : aLastRun.getX();
+        double lastX = aLastRun == null ? 0 : aLastRun.getLine().getTextX() + aLastRun.getX();
         double lastY = aLastRun == null ? aTextBox.getHeight() : aLastRun.getLine().getTextBaseline();
 
         // Set the current text point
@@ -113,13 +113,13 @@ public class PDFWriterText {
         PDFFontEntry fontEntry = fontChanged ? aWriter.getFontEntry(font, 0) : aWriter.getFontEntry();
 
         // If char spacing has changed, set charSpace
-        if (style.getCharSpacing() != (aLastRun == null ? 0 : lastStyle.getCharSpacing())) {
+        if (style.getCharSpacing() != (lastStyle == null ? 0 : lastStyle.getCharSpacing())) {
             pPage.append(style.getCharSpacing());
             pPage.appendln(" Tc");
         }
 
         // If run outline has changed, configure text rendering mode
-        if (!Objects.equals(style.getBorder(), aLastRun == null ? null : lastStyle.getBorder())) {
+        if (!Objects.equals(style.getBorder(), lastStyle == null ? null : lastStyle.getBorder())) {
             Border border = style.getBorder();
             if (border == null)
                 pPage.appendln("0 Tr");
