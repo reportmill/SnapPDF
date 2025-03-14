@@ -111,7 +111,7 @@ public class XRefView extends ViewOwner {
 
         // Set Browser items
         List<Object> items = new PDFResolver().getChildren(_pfile);
-        _browser.setItemsList(items);
+        _browser.setItems(items);
         _browser.setSelIndex(0);
 
         // Set Text
