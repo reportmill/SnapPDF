@@ -2,8 +2,7 @@ package snappdf;
 import snap.geom.Rect;
 import snap.gfx.Image;
 import snap.gfx.Painter;
-import snap.util.SnapUtils;
-
+import snap.util.SnapEnv;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -21,7 +20,7 @@ public class PDFEnv {
      */
     public byte[] getFileID(PDFFile aFile)
     {
-        byte fileId[] = new byte[16];
+        byte[] fileId = new byte[16];
         new Random().nextBytes(fileId);
         return fileId;
     }
@@ -43,9 +42,9 @@ public class PDFEnv {
     }
 
     /**
-     * Creates a new new PDF encryptor. Both the owner and user passwords are optional.
+     * Creates a new PDF encryptor. Both the owner and user passwords are optional.
      */
-    public PDFCodec newEncryptor(byte fileID[], String ownerP, String userP, int permissionFlags)
+    public PDFCodec newEncryptor(byte[] fileID, String ownerP, String userP, int permissionFlags)
     {
         System.err.println("PDFEnv.newEncryptor: Not implemented");
         return null;
@@ -69,12 +68,10 @@ public class PDFEnv {
         if (_shared != null) return _shared;
 
         // Use generic for TEAVM, otherwise Swing version
-        String cname = SnapUtils.getPlatform() == SnapUtils.Platform.TEAVM ? "snappdf.PDFEnv" : "snappdf.PDFEnvSwing";
+        String cname = SnapEnv.isTeaVM ? "snappdf.PDFEnv" : "snappdf.PDFEnvSwing";
 
         // Try to get/set class name instance
-        try {
-            return _shared = (PDFEnv) Class.forName(cname).newInstance();
-        }
+        try { return _shared = (PDFEnv) Class.forName(cname).newInstance(); }
         catch (Exception e) {
             System.err.println("PDFEnv.getEnv: Can't set env: " + cname + ", " + e);
             return _shared = new PDFEnv();
