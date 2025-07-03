@@ -383,8 +383,8 @@ public class XRefView extends ViewOwner {
         //snaptea.TV.set();
         // Get default doc source
         Object src = args.length > 0 ? args[0] : null;
-        if (src == null) src = WebURL.getURL(XRefView.class, "Sample.pdf");
-        WebURL url = WebURL.getURL(src);
+        if (src == null) src = WebURL.getResourceUrl(XRefView.class, "Sample.pdf");
+        WebURL url = WebURL.getUrl(src);
         if (url.getFile() == null) url = null;
 
         // Create Viewer
