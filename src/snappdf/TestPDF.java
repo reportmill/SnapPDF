@@ -1,6 +1,6 @@
 package snappdf;
 import snap.gfx.*;
-import snap.text.TextBlock;
+import snap.text.TextModel;
 import snap.text.TextStyle;
 import snap.util.SnapUtils;
 import snap.view.*;
@@ -33,7 +33,7 @@ public class TestPDF {
         page.addChild(textView);
 
         // Create/set RichText doc
-        TextBlock richText = textView.getTextBlock();
+        TextModel richText = textView.getTextModel();
         richText.addChars("Why is the world in love again, why are they marching hand in hand?");
         richText.setTextStyleValue(TextStyle.Font_Prop, new Font("Arial Bold", 24), 0, richText.length());
         richText.setTextStyleValue(TextStyle.UNDERLINE_KEY, 1, 20, 30);

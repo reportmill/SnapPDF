@@ -16,7 +16,7 @@ public class PDFWriterText {
     /**
      * Writes the given text run.
      */
-    public static void writeText(PDFWriter aWriter, TextBlock aTextBox)
+    public static void writeText(PDFWriter aWriter, TextModel aTextBox)
     {
         // If textbox doesn't render all text in bounds, add clip
         //if(layout.endIndex()<layout.length()) { aWriter.print("0 0 "); aWriter.print(aTextBox.getWidth());
@@ -87,7 +87,7 @@ public class PDFWriterText {
     /**
      * Writes the given TextBoxRun to pdf.
      */
-    public static void writeRun(PDFWriter aWriter, TextBlock aTextBox, TextLine aLine, TextRun aRun, TextRun aLastRun)
+    public static void writeRun(PDFWriter aWriter, TextModel aTextBox, TextLine aLine, TextRun aRun, TextRun aLastRun)
     {
         // Get pdf page
         PDFPageWriter pPage = aWriter.getPageWriter();
