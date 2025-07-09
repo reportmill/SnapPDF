@@ -16,11 +16,11 @@ public class PDFWriterText {
     /**
      * Writes the given text run.
      */
-    public static void writeText(PDFWriter aWriter, TextModel aTextBox)
+    public static void writeText(PDFWriter aWriter, TextModel textModel)
     {
-        // If textbox doesn't render all text in bounds, add clip
-        //if(layout.endIndex()<layout.length()) { aWriter.print("0 0 "); aWriter.print(aTextBox.getWidth());
-        //    aWriter.print(' '); aWriter.print(aTextBox.getHeight()); aWriter.println(" re W n"); }
+        // If text doesn't render all text in bounds, add clip
+        //if(layout.endIndex()<layout.length()) { aWriter.print("0 0 "); aWriter.print(textModel.getWidth());
+        //    aWriter.print(' '); aWriter.print(textModel.getHeight()); aWriter.println(" re W n"); }
 
         // Get page writer
         PDFPageWriter pwriter = aWriter.getPageWriter();
@@ -28,7 +28,7 @@ public class PDFWriterText {
         // Flip coordinate system since pdf font transforms are flipped
         pwriter.gsave();
         pwriter.append("1 0 0 -1 0 ");
-        pwriter.append(aTextBox.getHeight());
+        pwriter.append(textModel.getHeight());
         pwriter.appendln(" cm");
 
         // Output PDF begin text operator
@@ -36,16 +36,16 @@ public class PDFWriterText {
 
         // Iterate over lines and write
         TextRun lastRun = null;
-        for (TextLine line : aTextBox.getLines()) {
+        for (TextLine line : textModel.getLines()) {
 
             // If line below text, bail
-            if (line.getY() > aTextBox.getHeight())
+            if (line.getY() > textModel.getHeight())
                 break;
 
             // Iterate over runs and write
             TextRun[] runs = line.getRuns();
             for (TextRun run : runs) {
-                writeRun(aWriter, aTextBox, line, run, lastRun);
+                writeRun(aWriter, textModel, line, run, lastRun);
                 lastRun = run;
             }
         }
@@ -56,11 +56,11 @@ public class PDFWriterText {
         // Restore unflipped transform
         pwriter.grestore();
 
-        // If any underlining in TextBox, add underlining ops
-        if (aTextBox.isUnderlined()) {
+        // If any underlining in text, add underlining ops
+        if (textModel.isUnderlined()) {
 
             // Get underline runs
-            TextRun[] underlineRuns = aTextBox.getUnderlineRuns(null);
+            TextRun[] underlineRuns = textModel.getUnderlineRuns(null);
 
             // Iterate over underline runs
             for (TextRun run : underlineRuns) {
@@ -85,26 +85,26 @@ public class PDFWriterText {
     }
 
     /**
-     * Writes the given TextBoxRun to pdf.
+     * Writes the given text run to pdf.
      */
-    public static void writeRun(PDFWriter aWriter, TextModel aTextBox, TextLine aLine, TextRun aRun, TextRun aLastRun)
+    public static void writeRun(PDFWriter aWriter, TextModel textModel, TextLine textLine, TextRun textRun, TextRun lastRun)
     {
         // Get pdf page
         PDFPageWriter pPage = aWriter.getPageWriter();
-        TextStyle style = aRun.getTextStyle();
-        TextStyle lastStyle = aLastRun != null ? aLastRun.getTextStyle() : null;
+        TextStyle style = textRun.getTextStyle();
+        TextStyle lastStyle = lastRun != null ? lastRun.getTextStyle() : null;
 
         // If colorChanged, have writer setFillColor
         if (lastStyle == null || !lastStyle.getColor().equals(style.getColor()))
-            pPage.setFillColor(aRun.getColor());
+            pPage.setFillColor(textRun.getColor());
 
         // Get last x & y
-        double lastX = aLastRun == null ? 0 : aLastRun.getLine().getTextX() + aLastRun.getX();
-        double lastY = aLastRun == null ? aTextBox.getHeight() : aLastRun.getLine().getTextBaseline();
+        double lastX = lastRun == null ? 0 : lastRun.getLine().getTextX() + lastRun.getX();
+        double lastY = lastRun == null ? textModel.getHeight() : lastRun.getLine().getTextBaseline();
 
         // Set the current text point
-        double runX = aLine.getTextX() + aRun.getX() - lastX;
-        double runY = lastY - aLine.getTextBaseline(); // Flip y coordinate
+        double runX = textLine.getTextX() + textRun.getX() - lastX;
+        double runY = lastY - textLine.getTextBaseline(); // Flip y coordinate
         pPage.append(runX).append(' ').append(runY).appendln(" Td");
 
         // Get current run font, whether FontChanged and current font entry (base font entry for font, if font has changed)
@@ -126,7 +126,7 @@ public class PDFWriterText {
             else {
                 pPage.setStrokeColor(border.getColor());
                 pPage.setStrokeWidth(border.getWidth());
-                if (aRun.getColor().getAlpha() > 0) {
+                if (textRun.getColor().getAlpha() > 0) {
                     pPage.setFillColor(style.getColor());
                     pPage.appendln("2 Tr");
                 }
@@ -135,14 +135,14 @@ public class PDFWriterText {
         }
 
         // Get length - just return if zero
-        int length = aRun.length();
+        int length = textRun.length();
         if (length == 0) return;
 
         // Iterate over run chars
         for (int i = 0; i < length; i++) {
 
             // Get char and whether in ascii range
-            char c = aRun.charAt(i);
+            char c = textRun.charAt(i);
             boolean inAsciiRange = c < 256;
 
             // If char is less than 256, just mark it present in fontEntry chars
@@ -226,7 +226,7 @@ public class PDFWriterText {
         }
 
         // If run is hyphenated, add hyphen
-        if (aLine.isHyphenated() && aRun == aLine.getLastRun()) pPage.append('-');
+        if (textLine.isHyphenated() && textRun == textLine.getLastRun()) pPage.append('-');
 
         // End last text show block
         pPage.appendln(") Tj");
