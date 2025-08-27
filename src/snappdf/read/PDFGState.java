@@ -3,8 +3,6 @@
  */
 package snappdf.read;
 import java.util.*;
-
-import snap.geom.Point;
 import snap.gfx.*;
 import snappdf.PDFException;
 
@@ -13,8 +11,8 @@ import snappdf.PDFException;
  */
 public class PDFGState implements Cloneable {
 
-    // The current point
-    Point cp = new Point();
+    // The current point X/Y
+    double currentPointX, currentPointY;
 
     // The current color
     Color color = Color.BLACK;
@@ -43,7 +41,7 @@ public class PDFGState implements Cloneable {
     int lineCap = 0;
     int lineJoin = 0;
     float miterLimit = 10;
-    float lineDash[] = null;
+    float[] lineDash = null;
     float dashPhase = 0;
     float flatness = 0;
 
@@ -110,35 +108,19 @@ public class PDFGState implements Cloneable {
 
         // Convert from pdf constants to awt constants
         PDFGState gs = this;
-        Stroke.Cap cap;
-        switch (gs.lineCap) {
-            case PDFButtLineCap:
-                cap = Stroke.Cap.Butt;
-                break;
-            case PDFRoundLineCap:
-                cap = Stroke.Cap.Round;
-                break;
-            case PDFSquareLineCap:
-                cap = Stroke.Cap.Square;
-                break;
-            default:
-                cap = Stroke.Cap.Square;
-        }
+        Stroke.Cap cap = switch (gs.lineCap) {
+            case PDFButtLineCap -> Stroke.Cap.Butt;
+            case PDFRoundLineCap -> Stroke.Cap.Round;
+            case PDFSquareLineCap -> Stroke.Cap.Square;
+            default -> Stroke.Cap.Square;
+        };
 
-        Stroke.Join join;
-        switch (gs.lineJoin) {
-            case PDFMiterJoin:
-                join = Stroke.Join.Miter;
-                break;
-            case PDFRoundJoin:
-                join = Stroke.Join.Round;
-                break;
-            case PDFBevelJoin:
-                join = Stroke.Join.Bevel;
-                break;
-            default:
-                join = Stroke.Join.Round;
-        }
+        Stroke.Join join = switch (gs.lineJoin) {
+            case PDFMiterJoin -> Stroke.Join.Miter;
+            case PDFRoundJoin -> Stroke.Join.Round;
+            case PDFBevelJoin -> Stroke.Join.Bevel;
+            default -> Stroke.Join.Round;
+        };
 
         // Create stroke
         return stroke = new Stroke(gs.lineWidth, cap, join, gs.miterLimit, gs.lineDash, gs.dashPhase);
@@ -147,26 +129,21 @@ public class PDFGState implements Cloneable {
     /**
      * Standard clone implementation.
      */
-    public Object clone()
+    @Override
+    public PDFGState clone()
     {
-        PDFGState copy = null;
-        try {
-            copy = (PDFGState) super.clone();
-        }
-        catch (CloneNotSupportedException e) {
-            return null;
-        }
-        copy.cp = cp.clone();
-        return copy;
+        try { return (PDFGState) super.clone(); }
+        catch (CloneNotSupportedException e) { throw new RuntimeException(e); }
     }
 
     public static int getRenderingIntentID(String pdfName)
     {
-        if (pdfName.equals("/AbsoluteColorimetric")) return AbsoluteColorimetricIntent;
-        if (pdfName.equals("/RelativeColorimetric")) return RelativeColorimetricIntent;
-        if (pdfName.equals("/Saturation")) return SaturationIntent;
-        if (pdfName.equals("/Perceptual")) return PerceptualIntent;
-        throw new PDFException("Unknown rendering intent name \"" + pdfName + "\"");
+        return switch (pdfName) {
+            case "/AbsoluteColorimetric" -> AbsoluteColorimetricIntent;
+            case "/RelativeColorimetric" -> RelativeColorimetricIntent;
+            case "/Saturation" -> SaturationIntent;
+            case "/Perceptual" -> PerceptualIntent;
+            default -> throw new PDFException("Unknown rendering intent name \"" + pdfName + "\"");
+        };
     }
-
 }

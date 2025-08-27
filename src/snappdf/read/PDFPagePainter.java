@@ -317,9 +317,9 @@ public class PDFPagePainter {
      */
     void c()
     {
-        getPoint(_index, _gstate.cp);
+        setGStateCurrentPoint(_index);
         _path.curveTo(getFloat(_index - 6), getFloat(_index - 5), getFloat(_index - 4), getFloat(_index - 3),
-                _gstate.cp.x, _gstate.cp.y);
+                _gstate.currentPointX, _gstate.currentPointY);
     }
 
     /**
@@ -466,9 +466,11 @@ public class PDFPagePainter {
         _path.close();
 
         // Reset Gstate current point
-        _gstate.cp = _path.getLastPoint();
+        Point lastPoint = _path.getLastPoint();
         if (_path.getLastSeg() == Seg.Close && _path.getPointCount() > 0)
-            _gstate.cp = _path.getPoint(0);
+            lastPoint = _path.getPoint(0);
+        _gstate.currentPointX = lastPoint.x;
+        _gstate.currentPointY = lastPoint.y;
     }
 
     /**
@@ -529,8 +531,8 @@ public class PDFPagePainter {
      */
     void l()
     {
-        getPoint(_index, _gstate.cp);
-        _path.lineTo(_gstate.cp.x, _gstate.cp.y);
+        setGStateCurrentPoint(_index);
+        _path.lineTo(_gstate.currentPointX, _gstate.currentPointY);
     }
 
     /**
@@ -538,10 +540,10 @@ public class PDFPagePainter {
      */
     void m()
     {
-        getPoint(_index, _gstate.cp);
+        setGStateCurrentPoint(_index);
         if (_path == null)
             _path = new Path2D();
-        _path.moveTo(_gstate.cp.x, _gstate.cp.y);
+        _path.moveTo(_gstate.currentPointX, _gstate.currentPointY);
     }
 
     /**
@@ -582,19 +584,21 @@ public class PDFPagePainter {
     void re()
     {
         // Get rect
-        float x = getFloat(_index - 4), y = getFloat(_index - 3);
-        float w = getFloat(_index - 2), h = getFloat(_index - 1);
+        float rectX = getFloat(_index - 4);
+        float rectY = getFloat(_index - 3);
+        float rectW = getFloat(_index - 2);
+        float rectH = getFloat(_index - 1);
 
         // Create new path and add rect and reset current point to start of rect
         if (_path == null)
             _path = new Path2D();
-        _path.moveTo(x, y);
-        _path.lineTo(x + w, y);
-        _path.lineTo(x + w, y + h);
-        _path.lineTo(x, y + h);
+        _path.moveTo(rectX, rectY);
+        _path.lineTo(rectX + rectW, rectY);
+        _path.lineTo(rectX + rectW, rectY + rectH);
+        _path.lineTo(rectX, rectY + rectH);
         _path.close();
-        _gstate.cp.x = x;
-        _gstate.cp.y = y;  // TODO: Check that this is what really happens in pdf
+        _gstate.currentPointX = rectX;
+        _gstate.currentPointY = rectY;
     }
 
     /**
@@ -845,10 +849,11 @@ public class PDFPagePainter {
      */
     void v()
     {
-        double cp1x = _gstate.cp.x, cp1y = _gstate.cp.y;
+        double cp1x = _gstate.currentPointX;
+        double cp1y = _gstate.currentPointY;
         Point cp2 = getPoint(_index - 2);
-        getPoint(_index, _gstate.cp);
-        _path.curveTo(cp1x, cp1y, cp2.x, cp2.y, _gstate.cp.x, _gstate.cp.y);
+        setGStateCurrentPoint(_index);
+        _path.curveTo(cp1x, cp1y, cp2.x, cp2.y, _gstate.currentPointX, _gstate.currentPointY);
     }
 
     /**
@@ -897,8 +902,8 @@ public class PDFPagePainter {
     void y()
     {
         Point cp1 = getPoint(_index - 2);
-        getPoint(_index, _gstate.cp);
-        _path.curveTo(cp1.x, cp1.y, _gstate.cp.x, _gstate.cp.y, _gstate.cp.x, _gstate.cp.y);
+        setGStateCurrentPoint(_index);
+        _path.curveTo(cp1.x, cp1.y, _gstate.currentPointX, _gstate.currentPointY, _gstate.currentPointX, _gstate.currentPointY);
     }
 
 /** quote */
@@ -963,10 +968,10 @@ public class PDFPagePainter {
     /**
      * Gets the token at the given index as a point.
      */
-    private void getPoint(int i, Point pt)
+    private void setGStateCurrentPoint(int i)
     {
-        pt.x = getFloat(i - 2);
-        pt.y = getFloat(i - 1);
+        _gstate.currentPointX = getFloat(i - 2);
+        _gstate.currentPointY = getFloat(i - 1);
     }
 
     /**
