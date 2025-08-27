@@ -633,18 +633,16 @@ public abstract class PDFPattern {
         // the input coords and the radii would probably be enough. however...
         public void doShadingWithTransform(int[] samples, int x, int y, int w, int h)
         {
-            Point srcPt = new Point();
-            Point dstPt = new Point();
             int backsample = background != null ? getRGBAPixel(background) : 0;
             float[] t = new float[1];
             int sindex = 0;
             double twoA = 2 * pA;
 
             for (int j = 0; j < h; ++j) {
-                srcPt.y = y0 - (y + j);    //Yp
-                srcPt.x = x0 - x;       //Xp
+                double srcPtY = y0 - (y + j);    //Yp
+                double srcPtX = x0 - x;       //Xp
                 for (int i = 0; i < w; ++i) {
-                    dstPt = srcPt.transformedBy(_xform);
+                    Point dstPt = _xform.transformXY(srcPtX, srcPtY);
                     double pC0 = dstPt.y * dstPt.y - r0 * r0; //Yp
                     double pB0 = dstPt.y * dy - r0 * dr; //Xp
                     double pB = 2 * (dstPt.x * dx + pB0);
@@ -690,7 +688,7 @@ public abstract class PDFPattern {
                     }
                     else samples[sindex] = backsample; //sample = background color
                     sindex++;
-                    srcPt.x--;
+                    srcPtX--;
                 }
             }
         }
