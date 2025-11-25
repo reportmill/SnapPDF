@@ -2,6 +2,8 @@ package snappdf.write;
 import snap.gfx.*;
 import snap.text.*;
 import snappdf.PDFWriter;
+
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -16,7 +18,7 @@ public class PDFWriterText {
     /**
      * Writes the given text run.
      */
-    public static void writeText(PDFWriter aWriter, TextModel textModel)
+    public static void writeText(PDFWriter aWriter, TextLayout textModel)
     {
         // If text doesn't render all text in bounds, add clip
         //if(layout.endIndex()<layout.length()) { aWriter.print("0 0 "); aWriter.print(textModel.getWidth());
@@ -60,7 +62,7 @@ public class PDFWriterText {
         if (textModel.isUnderlined()) {
 
             // Get underline runs
-            TextRun[] underlineRuns = textModel.getUnderlineRuns(null);
+            List<TextRun> underlineRuns = textModel.getUnderlineRuns(null);
 
             // Iterate over underline runs
             for (TextRun run : underlineRuns) {
@@ -87,7 +89,7 @@ public class PDFWriterText {
     /**
      * Writes the given text run to pdf.
      */
-    public static void writeRun(PDFWriter aWriter, TextModel textModel, TextLine textLine, TextRun textRun, TextRun lastRun)
+    public static void writeRun(PDFWriter aWriter, TextLayout textModel, TextLine textLine, TextRun textRun, TextRun lastRun)
     {
         // Get pdf page
         PDFPageWriter pPage = aWriter.getPageWriter();
