@@ -18,7 +18,7 @@ public class PDFWriterText {
     /**
      * Writes the given text run.
      */
-    public static void writeText(PDFWriter aWriter, TextLayout textModel)
+    public static void writeText(PDFWriter aWriter, TextLayout textLayout)
     {
         // If text doesn't render all text in bounds, add clip
         //if(layout.endIndex()<layout.length()) { aWriter.print("0 0 "); aWriter.print(textModel.getWidth());
@@ -30,7 +30,7 @@ public class PDFWriterText {
         // Flip coordinate system since pdf font transforms are flipped
         pwriter.gsave();
         pwriter.append("1 0 0 -1 0 ");
-        pwriter.append(textModel.getHeight());
+        pwriter.append(textLayout.getHeight());
         pwriter.appendln(" cm");
 
         // Output PDF begin text operator
@@ -38,16 +38,16 @@ public class PDFWriterText {
 
         // Iterate over lines and write
         TextRun lastRun = null;
-        for (TextLine line : textModel.getLines()) {
+        for (TextLine line : textLayout.getLines()) {
 
             // If line below text, bail
-            if (line.getY() > textModel.getHeight())
+            if (line.getY() > textLayout.getHeight())
                 break;
 
             // Iterate over runs and write
             TextRun[] runs = line.getRuns();
             for (TextRun run : runs) {
-                writeRun(aWriter, textModel, line, run, lastRun);
+                writeRun(aWriter, textLayout, line, run, lastRun);
                 lastRun = run;
             }
         }
@@ -59,10 +59,10 @@ public class PDFWriterText {
         pwriter.grestore();
 
         // If any underlining in text, add underlining ops
-        if (textModel.isUnderlined()) {
+        if (textLayout.isUnderlined()) {
 
             // Get underline runs
-            List<TextRun> underlineRuns = textModel.getUnderlineRuns(null);
+            List<TextRun> underlineRuns = textLayout.getUnderlineRuns(null);
 
             // Iterate over underline runs
             for (TextRun run : underlineRuns) {
