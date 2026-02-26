@@ -2,7 +2,6 @@ import java.text.SimpleDateFormat
 
 plugins {
     id 'java'
-    id 'application'
 }
 
 group 'com.reportmill'
@@ -30,5 +29,3 @@ dependencies {
     else { println 'Using latest SnapKit GitHub repo'
         implementation 'com.github.reportmill:SnapKit:master-SNAPSHOT'  }
 }
-
-mainClassName = 'snappdf.XRefView'
