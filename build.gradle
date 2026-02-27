@@ -4,8 +4,8 @@ plugins {
     id 'java'
 }
 
-group 'com.reportmill'
-version  new SimpleDateFormat("yyyy.MM.dd").format(new Date())
+group = 'com.reportmill'
+version = new SimpleDateFormat("yyyy.MM.dd").format(new Date())
 
 sourceSets.main.java.srcDirs = ['src']
 sourceSets.main.resources.srcDirs = ['src']
@@ -18,14 +18,12 @@ java {
 repositories {
 
     // Jitpack makes builds from GitHub repos
-    maven { url 'https://jitpack.io' }
+    maven { url = 'https://jitpack.io' }
 }
 
 dependencies {
 
     // If Local SnapKit project, use that, otherwise use latest GitHub repo
-    if (findProject(':SnapKit') != null) { println 'Using local SnapKit project'
-        implementation project(':SnapKit') }
-    else { println 'Using latest SnapKit GitHub repo'
-        implementation 'com.github.reportmill:SnapKit:master-SNAPSHOT'  }
+    if (findProject(':SnapKit') != null) { implementation project(':SnapKit') }
+    else { implementation 'com.github.reportmill:SnapKit:master-SNAPSHOT'  }
 }
