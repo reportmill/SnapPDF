@@ -14,7 +14,7 @@ import snap.web.WebURL;
 /**
  * Views a PDF file.
  */
-public class XRefView extends ViewOwner {
+public class XRefView extends ViewController {
 
     // The PDF file source
     Object _src;
