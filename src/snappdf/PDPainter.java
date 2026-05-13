@@ -153,7 +153,7 @@ public class PDPainter extends PainterImpl {
 
         // Get dest bounds
         Rect srcBnds = new Rect(0, 0, anImg.getWidth(), anImg.getHeight());
-        Rect dstBnds = srcBnds.copyFor(aTrans).getBounds();
+        Rect dstBnds = srcBnds.copyForTransform(aTrans).getBounds();
         drawImage(anImg, srcBnds.x, srcBnds.y, srcBnds.width, srcBnds.height,
                 dstBnds.x, dstBnds.y, dstBnds.width, dstBnds.height);
     }
