@@ -4,12 +4,12 @@
     <Label Name="NameLabel" Font="Arial Bold 32" />
   </RowView>
   <TabView Name="TabView" GrowHeight="true">
-    <ScrollView title="Graphics">
+    <ScrollView Title="Graphics">
       <BoxView>
         <ImageView Name="ImageView" />
       </BoxView>
     </ScrollView>
-    <SplitView Name="BrowserSplit" Vertical="true" title="Structure">
+    <SplitView Name="BrowserSplit" Vertical="true" Title="Structure">
       <BoxView Padding="8,4,4,4" FillWidth="true" FillHeight="true">
         <BrowserView Name="BrowserView" PrefHeight="360" />
       </BoxView>
