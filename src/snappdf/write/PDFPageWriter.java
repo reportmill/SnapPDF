@@ -16,28 +16,28 @@ import snap.util.*;
 public class PDFPageWriter extends PDFWriterBase {
 
     // The pdf file this page is part of
-    PDFFile _pfile;
+    private PDFFile _pfile;
 
     // The XRef table for file
-    PDFXTable _xtable;
+    private PDFXTable _xtable;
 
     // The master writer for this page writer
-    PDFWriter _writer;
+    private PDFWriter _writer;
 
     // The pdf media box for this page
-    Rect _mediaBox;
+    private Rect _mediaBox;
 
     // The pdf crop box for this page
-    Rect _cropBox;
+    private Rect _cropBox;
 
     // The graphics state stack
-    PDFGStateStack _gstack = new PDFGStateStack();
+    private PDFGStateStack _gstack = new PDFGStateStack();
 
     // List of pdf annotations for this page
-    List<PDFAnnotation> _annotations;
+    private List<PDFAnnotation> _annotations;
 
     // List of pdf resources for this page 
-    Map _resources;
+    private Map<String,Object> _resources;
 
     /**
      * Creates a PDF page for the page tree and pfile.
@@ -52,7 +52,7 @@ public class PDFPageWriter extends PDFWriterBase {
         _xtable.addObject(this);
 
         // Create resources
-        _resources = new Hashtable(4);
+        _resources = new Hashtable<>(4);
         _resources.put("Font", _xtable.getRefString(aWriter.getFonts()));
         _resources.put("XObject", _xtable.getRefString(aWriter.getImageRefs()));
         _resources.put("ProcSet", "[/PDF /Text /ImageC /ImageI /ImageB]");
@@ -102,6 +102,11 @@ public class PDFPageWriter extends PDFWriterBase {
         append(aColor.getRed()).append(' ').append(aColor.getGreen()).append(' ').append(aColor.getBlue()).appendln(" RG");
         setStrokeOpacity(aColor.getAlpha());
     }
+
+    /**
+     * Returns the current opacity.
+     */
+    public double getOpacity()  { return _gstack.getShapeOpacity(); }
 
     /**
      * Sets the opacity for all drawing.
@@ -383,7 +388,7 @@ public class PDFPageWriter extends PDFWriterBase {
     public void addAnnotation(PDFAnnotation anAnnot)
     {
         // Add annotation to list
-        if (_annotations == null) _annotations = new ArrayList();
+        if (_annotations == null) _annotations = new ArrayList<>();
         _annotations.add(anAnnot);
 
         // If Widget, add to Catalog.AcroForm dict, otherwise, just add to XRef Table
@@ -395,7 +400,7 @@ public class PDFPageWriter extends PDFWriterBase {
     /**
      * Returns the resource dict for this page.
      */
-    public Map getResourcesDict()
+    public Map<String,Object> getResourcesDict()
     {
         return _resources;
     }
@@ -403,22 +408,19 @@ public class PDFPageWriter extends PDFWriterBase {
     /**
      * Returns the named resource dict for this page.
      */
-    public Map getResourceMap(String aResourceName)
+    public Map<String,Object> getResourceMap(String aResourceName)
     {
         // Get map from resources (create and add it, if absent)
-        Map map = (Map) _resources.get(aResourceName);
+        Map<String,Object> map = (Map<String,Object>) _resources.get(aResourceName);
         if (map == null)
-            _resources.put(aResourceName, map = new Hashtable());
+            _resources.put(aResourceName, map = new Hashtable<>());
         return map;
     }
 
     /**
      * Returns the ExtGState dict for this page.
      */
-    public Map getExtGStateMap()
-    {
-        return getResourceMap("ExtGState");
-    }
+    public Map<String,Object> getExtGStateMap()  { return getResourceMap("ExtGState"); }
 
     /**
      * Adds a new colorspace to the resource dict and returns the name by which it's referred.
@@ -426,7 +428,7 @@ public class PDFPageWriter extends PDFWriterBase {
     public String addColorspace(Object cspace)
     {
         // Get colorspace dictionary from resources (create and add it, if absent)
-        Map map = getResourceMap("ColorSpace");
+        Map<String,Object> map = getResourceMap("ColorSpace");
         String ref = _xtable.addObject(cspace);
         String name;
 
@@ -450,7 +452,7 @@ public class PDFPageWriter extends PDFWriterBase {
     public String addPattern(Object aPattern)
     {
         // Get colorspace dictionary from resources (create and add it, if absent)
-        Map map = getResourceMap("Pattern");
+        Map<String,Object> map = getResourceMap("Pattern");
         String ref = _xtable.addObject(aPattern);
         String name;
 
@@ -483,13 +485,13 @@ public class PDFPageWriter extends PDFWriterBase {
     protected PDFStream createStream()
     {
         // Get bytes and clear buffer
-        byte bytes[] = toByteArray();
+        byte[] bytes = toByteArray();
         _source.reset();
 
         // See if we need to compress
         boolean compressed = false;
         if (_writer.getCompress()) {
-            byte bytes2[] = _writer.getBytesEncoded(bytes, 0, bytes.length);
+            byte[] bytes2 = _writer.getBytesEncoded(bytes, 0, bytes.length);
             if (bytes2.length < bytes.length) {
                 bytes = bytes2;
                 compressed = true;
@@ -532,13 +534,11 @@ public class PDFPageWriter extends PDFWriterBase {
         // Write page annotations: Create new list of xrefs and write
         if (_annotations != null) {
             aWriter.append("/Annots ");
-            List axrefs = new ArrayList();
-            for (PDFAnnotation a : _annotations) axrefs.add(_xtable.getRefString(a));
-            aWriter.writeXRefEntry(axrefs);
+            List<String> annotationXrefs = _annotations.stream().map(_xtable::getRefString).toList();
+            aWriter.writeXRefEntry(annotationXrefs);
         }
 
         // Finish page
         aWriter.append(">>");
     }
-
 }
