@@ -184,7 +184,7 @@ public class XRefView extends ViewController {
         _imageView = getView("ImageView", ImageView.class); //_imageView.getParent().setPrefSize(820,940);
         _imageView.setFill(Color.WHITE);
         _imageView.setBorder(Color.BLACK, 1);
-        _imageView.addEventHandler(e -> imageViewDidMouseRelease());
+        _imageView.addEventHandler(e -> handleImageViewMouseReleaseEvent(), MouseRelease);
 
         // Get/configure BrowserView
         _browser = getView("BrowserView", BrowserView.class);
@@ -234,7 +234,7 @@ public class XRefView extends ViewController {
         anEvent.acceptDrag();
         ClipboardData cdata = anEvent.getClipboard().getFiles().get(0);
         if (!cdata.isLoaded()) {
-            cdata.addLoadListener(cd -> droppedClipboardFinishedLoading(cdata));
+            cdata.addLoadListener(cd -> handleDroppedClipboardFinishedLoading(cdata));
             anEvent.dropComplete();
             return;
         }
@@ -243,14 +243,14 @@ public class XRefView extends ViewController {
         anEvent.dropComplete();
     }
 
-    private void droppedClipboardFinishedLoading(ClipboardData aCD)
+    private void handleDroppedClipboardFinishedLoading(ClipboardData aCD)
     {
         byte[] bytes = aCD.getBytes();
         setName(aCD.getName());
         setSource(bytes);
     }
 
-    private void imageViewDidMouseRelease()
+    private void handleImageViewMouseReleaseEvent()
     {
         if (_pfile == null) return;
         int nextPageIndex = (getPage() + 1) % getPageCount();
